@@ -1,0 +1,50 @@
+{
+  "created_at": "2026-09-15T18:10:37+00:00",
+  "vqi_version": "0.1.0",
+  "git_commit": null,
+  "git_dirty": true,
+  "config_hash": "93d115c00aaa",
+  "config_files": [
+    "configs\\default.yaml"
+  ],
+  "seed": 42,
+  "strategy": "stratified_group_holdout",
+  "val_fraction": 0.2,
+  "k_folds_mechanism": 5,
+  "fold_used": 0,
+  "stratify_on": "label",
+  "group_column": "group_id",
+  "near_duplicate_threshold": null,
+  "manifest_sha256": "e93e299e4e33e45609a6f8d1e96e28a1b39af052280058f5bf1331b59dcbe70c",
+  "splits_sha256": "b619dcfb7aed56228e7171fc8456c231ccda7bdf92b9f8281e1c016c8f5e3be6",
+  "checks": {
+    "groups_spanning_train_val": 0,
+    "test_equals_official_test": true,
+    "val_in_official_train_only": true,
+    "no_duplicate_image_id": true,
+    "val_fraction_actual": 0.1999,
+    "positive_rate": {
+      "train": 0.1056,
+      "val": 0.1052,
+      "test": 0.1096
+    },
+    "counts": {
+      "train": {
+        "total": 1865,
+        "defective": 197
+      },
+      "val": {
+        "total": 466,
+        "defective": 49
+      },
+      "test": {
+        "total": 1004,
+        "defective": 110
+      },
+      "excluded": {
+        "total": 1,
+        "defective": 0
+      }
+    }
+  }
+}

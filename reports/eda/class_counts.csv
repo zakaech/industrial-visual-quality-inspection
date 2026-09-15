@@ -1,0 +1,4 @@
+official_split,n_images,n_good,n_defective,defect_rate,imbalance_ratio_neg_pos
+train,2331,2085,246,0.1055,8.48
+test,1004,894,110,0.1096,8.13
+all,3335,2979,356,0.1067,8.37

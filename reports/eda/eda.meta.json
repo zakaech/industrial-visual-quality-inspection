@@ -1,0 +1,20 @@
+{
+  "created_at": "2026-09-15T18:10:57+00:00",
+  "vqi_version": "0.1.0",
+  "git_commit": null,
+  "git_dirty": true,
+  "config_hash": "93d115c00aaa",
+  "config_files": [
+    "configs\\default.yaml"
+  ],
+  "seed": 42,
+  "figures": {
+    "dimensions": "reports/eda/figures/dimensions.png",
+    "luminance_contrast": "reports/eda/figures/luminance_contrast.png",
+    "defect_area": "reports/eda/figures/defect_area.png",
+    "phash_nn_distance": "reports/eda/figures/phash_nn_distance.png",
+    "acquisition_order": "reports/eda/figures/acquisition_order.png",
+    "closest_pairs": "reports/eda/figures/closest_pairs.png",
+    "contact_sheet": "reports/eda/figures/contact_sheet.png"
+  }
+}

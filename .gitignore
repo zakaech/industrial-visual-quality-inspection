@@ -1,0 +1,38 @@
+# --- data (never committed; reproducibility comes from checksums + split manifests) ---
+data/raw/
+data/interim/
+data/processed/
+!data/splits/            # committed: CSV manifests (image id, label, split, hash)
+
+# --- experiment outputs ---
+runs/
+logs/
+*.pt
+*.pth
+*.ckpt
+*.onnx
+
+# --- python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+build/
+dist/
+
+# --- notebooks ---
+.ipynb_checkpoints/
+
+# --- os / ide ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# --- secrets / local overrides ---
+.env
+configs/local*.yaml

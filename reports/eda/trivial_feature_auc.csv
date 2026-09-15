@@ -1,0 +1,7 @@
+feature,roc_auc,auc_from_0.5
+std_luminance,0.7246,0.2246
+channel_spread,0.6442,0.1442
+mean_luminance,0.4753,0.0247
+width,0.5156,0.0156
+height,0.5142,0.0142
+image_bytes,0.5023,0.0023

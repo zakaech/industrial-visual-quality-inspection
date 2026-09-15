@@ -1,0 +1,13 @@
+image_id_a,image_id_b,distance,split_a,split_b,label_a,label_b
+10831,11088,8,train,train,0,1
+10991,12247,8,train,train,0,0
+10018,11835,10,train,train,0,0
+10029,20245,10,train,test,0,0
+10056,11657,10,train,train,0,0
+10110,11520,10,train,train,0,0
+10115,10152,10,train,train,0,0
+10145,20561,10,train,test,1,1
+10165,20841,10,train,test,0,0
+10314,20573,10,train,test,0,0
+10357,11843,10,train,train,0,0
+10399,20055,10,train,test,0,0

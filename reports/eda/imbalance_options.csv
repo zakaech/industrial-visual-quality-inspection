@@ -1,0 +1,7 @@
+option,parametre,valeur,effet_sur_le_gradient,effet_sur_la_calibration
+aucune (BCE simple) + seuil sur la validation,pos_weight = 1,1.0,aucun ; la classe positive pèse ~10.6 % des exemples,aucun (probabilités interprétables)
+pondération de la perte (BCEWithLogits pos_weight),pos_weight = n_neg / n_pos,8.48,chaque positif compte comme 8.5 négatifs ; classes équilibrées,décale le prior : les probabilités sont gonflées
+"pondération de la perte, variante douce",pos_weight = sqrt(n_neg / n_pos),2.91,compromis entre les deux précédents,décalage modéré
+suréchantillonnage des positifs (duplication),facteur = n_neg / n_pos,8.48,"équivalent à pos_weight en espérance, mais plus de passes sur les mêmes 246 positifs (risque de surapprentissage)",identique à pos_weight
+WeightedRandomSampler (tirage équilibré par batch),poids_i = 1 / n_classe(i) ; batch ≈ 50/50,0.004065,chaque batch contient ~50 % de positifs ; l'epoch ne voit plus tous les négatifs,décalage du prior (comme pos_weight)
+focal loss,gamma = 2 (config training.loss.focal_gamma),2.0,"atténue les exemples faciles, quelle que soit leur classe",connue pour dégrader la calibration
