@@ -33,7 +33,8 @@ from vqi.baseline.classifier import (
 )
 from vqi.baseline.features import FeatureExtractor
 from vqi.config import Config, ExperimentSpec
-from vqi.data.splits import read_splits, read_splits_meta
+from vqi.data.splits import ForbiddenSplitError, read_splits_meta  # noqa: F401 (re-export)
+from vqi.data.splits import load_split_rows as _load_split_rows
 from vqi.evaluation.metrics import evaluate_scores, threshold_sweep
 from vqi.logging_utils import get_logger, log_event
 from vqi.preprocessing import Preprocessor
@@ -42,26 +43,9 @@ from vqi.provenance import provenance
 logger = get_logger(__name__)
 
 
-class ForbiddenSplitError(RuntimeError):
-    """The official test split must not be touched before the final evaluation."""
-
-
-# --------------------------------------------------------------------------------------------- #
-# Data access
-# --------------------------------------------------------------------------------------------- #
-
-
 def load_split_rows(cfg: Config, split: str) -> pd.DataFrame:
-    if split not in cfg.baseline.allowed_splits:
-        raise ForbiddenSplitError(
-            f"split '{split}' is not allowed in the baseline "
-            f"(allowed: {cfg.baseline.allowed_splits})"
-        )
-    df = read_splits(cfg)
-    rows = df[df["split"] == split].reset_index(drop=True)
-    if rows.empty:
-        raise ValueError(f"no rows for split '{split}'")
-    return rows
+    """Baseline view of the shared guard: only ``baseline.allowed_splits`` may be loaded."""
+    return _load_split_rows(cfg, split, cfg.baseline.allowed_splits)
 
 
 # --------------------------------------------------------------------------------------------- #

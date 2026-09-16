@@ -147,33 +147,34 @@ class BrightnessContrastConfig:
 
 
 @dataclass(frozen=True)
-class RandomCropConfig:
+class TranslationConfig:
     enabled: bool
+    max_shift_px: int
+    p: float
 
 
 @dataclass(frozen=True)
 class AugmentationConfig:
     horizontal_flip_p: float
     vertical_flip_p: float
-    rotate_90_p: float
     brightness_contrast: BrightnessContrastConfig
-    random_crop: RandomCropConfig
+    translation: TranslationConfig
 
 
 @dataclass(frozen=True)
 class ModelConfig:
     architecture: str
+    weights: str
     pretrained: bool
     num_outputs: int
     dropout: float
-    freeze_backbone: bool
-    freeze_bn_stats: bool
+    pooling: str
+    head_bias_init: str
 
 
 @dataclass(frozen=True)
 class OptimizerConfig:
     name: str
-    lr: float
     weight_decay: float
 
 
@@ -194,7 +195,8 @@ class LossConfig:
 class EarlyStoppingConfig:
     monitor: str
     mode: str
-    patience: int
+    min_delta: float
+    min_epochs: int
 
 
 @dataclass(frozen=True)
@@ -204,20 +206,88 @@ class CheckpointConfig:
 
 
 @dataclass(frozen=True)
+class CacheConfig:
+    enabled: bool
+    dir: Path
+
+
+@dataclass(frozen=True)
+class StageConfig:
+    trainable: tuple[str, ...]
+    lr: dict[str, Any]
+    max_epochs: int
+    patience: int
+    augment: bool
+    cached_features: bool
+
+
+@dataclass(frozen=True)
+class DryRunConfig:
+    batch_sizes: tuple[int, ...]
+    num_workers_options: tuple[int, ...]
+    n_loader_batches: int
+    warmup_steps: int
+    n_steps: int
+    n_cache_check: int
+    n_saturation_check: int
+    determinism_steps: int
+
+
+@dataclass(frozen=True)
 class TrainingConfig:
     device: str
-    num_workers: int
-    epochs: int
+    allowed_splits: tuple[str, ...]
     batch_size: int
+    num_workers: int
     optimizer: OptimizerConfig
     scheduler: SchedulerConfig
     loss: LossConfig
     sampler: str
+    bn_policy: str
     early_stopping: EarlyStoppingConfig
     checkpoint: CheckpointConfig
     grad_clip_norm: float
     log_every_n_steps: int
-    dry_run_epochs: int
+    cache: CacheConfig
+    stages: dict[str, Any]
+    dry_run: DryRunConfig
+
+    def stage(self, name: str) -> StageConfig:
+        if name not in self.stages:
+            raise KeyError(f"unknown training stage '{name}' (known: {sorted(self.stages)})")
+        return _build(StageConfig, self.stages[name], f"training.stages.{name}")
+
+
+@dataclass(frozen=True)
+class SelectionConfig:
+    primary: str
+    secondary: str
+
+
+@dataclass(frozen=True)
+class PairedBootstrapConfig:
+    n_resamples: int
+    confidence_level: float
+
+
+@dataclass(frozen=True)
+class Phase3ExperimentSpec:
+    id: str
+    stages: tuple[str, ...]
+    pos_weight: Any = 1.0  # float | "ratio" | "sqrt_ratio"
+    sampler: str = "none"
+    start_from_winner_of: tuple[str, ...] | None = None
+    pooling: str | None = None  # override of model.pooling (ablation X7)
+
+
+@dataclass(frozen=True)
+class Phase3Config:
+    report_subdir: str
+    reference_experiment: str
+    selection: SelectionConfig
+    paired_bootstrap: PairedBootstrapConfig
+    defect_area_bins: tuple[int, ...]
+    experiments: tuple[Phase3ExperimentSpec, ...]
 
 
 @dataclass(frozen=True)
@@ -388,6 +458,7 @@ class Config:
     evaluation: EvaluationConfig
     eda: EdaConfig
     baseline: BaselineConfig
+    phase3: Phase3Config
     inference: InferenceConfig
     api: ApiConfig
     logging: LoggingConfig

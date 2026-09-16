@@ -15,6 +15,7 @@ The resulting CSV is committed to git so the partition is reproducible without t
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
@@ -47,6 +48,10 @@ SPLIT_COLUMNS = [
 
 class SplitError(RuntimeError):
     """A split invariant is violated."""
+
+
+class ForbiddenSplitError(RuntimeError):
+    """The official test split must not be touched before the final evaluation (Phase 4)."""
 
 
 def _n_folds_for(val_fraction: float) -> int:
@@ -207,3 +212,17 @@ def read_splits_meta(cfg: Config) -> dict[str, Any]:
     if not meta_path.exists():
         raise FileNotFoundError(f"Split metadata not found: {meta_path}")
     return json.loads(meta_path.read_text(encoding="utf-8"))
+
+
+def load_split_rows(cfg: Config, split: str, allowed_splits: Sequence[str]) -> pd.DataFrame:
+    """Rows of one split, refusing anything outside ``allowed_splits`` (the test-set guard shared
+    by the classical baseline and the CNN training)."""
+    if split not in allowed_splits:
+        raise ForbiddenSplitError(
+            f"split '{split}' is not allowed here (allowed: {list(allowed_splits)})"
+        )
+    df = read_splits(cfg)
+    rows = df[df["split"] == split].reset_index(drop=True)
+    if rows.empty:
+        raise ValueError(f"no rows for split '{split}'")
+    return rows

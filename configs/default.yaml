@@ -99,53 +99,111 @@ preprocessing:                         # UN SEUL module (src/vqi/preprocessing) 
       laplacian:                       # comparaison visuelle / CNR uniquement, hors matrice sauf si le CNR le justifie
         - {op: laplacian_sharpen, strength: 0.5}
 
-augmentation:                          # appliquée au split train UNIQUEMENT ; toutes préservent le label (R10)
-  horizontal_flip_p: 0.5
-  vertical_flip_p: 0.5
-  rotate_90_p: 0.0                     # TBD après l'EDA : seulement si les défauts sont invariants à l'orientation
-  brightness_contrast:
+augmentation:                          # appliquée au split TRAIN uniquement, sur le canevas uint8, avant to_tensor (R10)
+  horizontal_flip_p: 0.5               # permutation exacte de pixels : le défaut est conservé
+  vertical_flip_p: 0.5                 # pas d'orientation privilégiée des défauts ni de haut/bas sémantique
+  brightness_contrast:                 # dérive d'éclairage réaliste ; images sombres -> variation légère
     enabled: true
-    brightness_limit: 0.10
-    contrast_limit: 0.10
+    brightness_limit: 0.10             # facteur multiplicatif dans [1 - l, 1 + l]
+    contrast_limit: 0.10               # facteur sur l'écart à la moyenne de l'image dans [1 - l, 1 + l]
     p: 0.30
-  random_crop:
-    enabled: false                     # rejeté en v1 : un recadrage peut retirer le défaut et inverser le label
+  translation:                         # jitter de positionnement ; OFF en v1 (décision Phase 3 §20.6)
+    enabled: false
+    max_shift_px: 8
+    p: 0.30
+  # rejetés : rotation 90° (change le format), recadrage / erasing (peuvent supprimer le défaut -> bruit de
+  # label), bruit / flou (Phase 2 : le lissage n'aide pas, l'amplification du bruit nuit)
 
 model:
-  architecture: resnet18               # resnet18 | resnet34 | efficientnet_b0 | mobilenet_v3_large
-  pretrained: true                     # poids ImageNet (torchvision)
+  architecture: resnet18               # resnet18 (v1) ; resnet34 | efficientnet_b0 | mobilenet_v3_large réservés
+  weights: IMAGENET1K_V1               # poids torchvision pré-entraînés ImageNet
+  pretrained: true
   num_outputs: 1                       # un seul logit -> sigmoïde -> P(défectueux)
-  dropout: 0.2
-  freeze_backbone: false               # true = référence « sonde linéaire » (contrôle CPU bon marché)
-  freeze_bn_stats: false
+  dropout: 0.2                         # tête : Dropout -> Linear
+  pooling: avg                         # avg | max | avgmax — GAP par défaut ; ablation X7 conditionnelle
+  head_bias_init: prior                # prior | zero — biais initial = logit(p) = log(p/(1-p)) = log(n_pos/n_neg) du TRAIN
 
 training:
   device: cpu                          # aucun périphérique CUDA sur la machine cible
-  num_workers: 4
-  epochs: 20
-  batch_size: 16
+  allowed_splits: [train, val]         # le test officiel est interdit (le chargeur lève une exception, testé)
+  batch_size: 16                       # cible ; le dry-run X0 mesure 8 / 16 / 32
+  num_workers: 2                       # cible ; le dry-run X0 mesure 0 / 2 / 4
   optimizer:
     name: adamw
-    lr: 1.0e-4
-    weight_decay: 1.0e-4
+    weight_decay: 1.0e-4               # les learning rates sont fixés PAR ÉTAPE (training.stages)
   scheduler:
-    name: cosine                       # cosine | none
+    name: cosine                       # cosinus par étape, calculé par pas
     warmup_epochs: 1
   loss:
     name: bce_with_logits              # bce_with_logits | focal
-    pos_weight: 1.0                    # D4 : BCE simple pour la calibration ; ablation prévue sur [1, 3, 9]
+    pos_weight: 1.0                    # valeur par défaut ; les expériences Phase 3 la surchargent (1 | sqrt_ratio | ratio)
     focal_gamma: 2.0                   # utilisé seulement si loss.name == focal
-  sampler: none                        # none | weighted_random (alternative à pos_weight)
+  sampler: none                        # none | weighted_random (batches ≈ 50/50, poids 1/n_classe)
+  bn_policy: frozen_eval               # BatchNorm figée (eval) dans les couches gelées, entraînable dans les couches dégelées
   early_stopping:
-    monitor: val_average_precision     # indépendante du seuil, robuste au déséquilibre (§4.2)
+    monitor: val_average_precision     # indépendante du seuil ; patience par étape
     mode: max
-    patience: 5
+    min_delta: 0.002
+    min_epochs: 2
   checkpoint:
-    save_best_only: true
+    save_best_only: false              # best.pt (monitor) + last.pt par étape
     monitor: val_average_precision
   grad_clip_norm: 5.0
   log_every_n_steps: 20
-  dry_run_epochs: 1                    # run de chronométrage avant de s'engager sur le planning (R5)
+  cache:                               # canevas uint8 (sortie exacte du Preprocessor) en memmap .npy, un par split
+    enabled: true
+    dir: data/processed/canvases       # invalidé par hash (Preprocessor + splits) ; vérifié contre le live au dry-run
+  stages:                              # stratégie freeze -> unfreeze (Phase 3 §7) ; chaque étape repart du best.pt précédent
+    A:
+      trainable: [head]                # sonde linéaire : backbone gelé en eval, features 512-d calculées UNE fois, sans augmentation
+      lr: {head: 1.0e-3}
+      max_epochs: 30
+      patience: 5
+      augment: false
+      cached_features: true
+    B:
+      trainable: [layer4, head]
+      lr: {layer4: 1.0e-4, head: 1.0e-3}
+      max_epochs: 8
+      patience: 3
+      augment: true
+      cached_features: false
+    C:
+      trainable: [layer3, layer4, head]
+      lr: {layer3: 5.0e-5, layer4: 1.0e-4, head: 5.0e-4}
+      max_epochs: 8
+      patience: 3
+      augment: true
+      cached_features: false
+  dry_run:                             # X0 : mesures réelles avant tout entraînement (Phase 3 §11)
+    batch_sizes: [8, 16, 32]
+    num_workers_options: [0, 2, 4]
+    n_loader_batches: 8
+    warmup_steps: 2
+    n_steps: 10
+    n_cache_check: 32
+    n_saturation_check: 200
+    determinism_steps: 20
+
+phase3:                                # expériences CNN (Phase 3) — fit sur train, mesure sur val, test interdit
+  report_subdir: phase3
+  reference_experiment: E5_grid_edge_check   # référence Phase 2 figée (scores par image dans reports/phase2/experiments/)
+  selection:                           # gagnant B parmi X2–X5 (validé, ne pas changer après les résultats)
+    primary: precision_at_recall_0.95
+    secondary: average_precision
+  paired_bootstrap:
+    n_resamples: 1000
+    confidence_level: 0.95
+  defect_area_bins: [0, 250, 1000, 2500, 5000, 1000000]   # rappel par taille de défaut au seuil rappel >= 0,95 (val)
+  experiments:
+    - {id: X1_linear_probe, stages: [A], pos_weight: 1.0, sampler: none}
+    - {id: X2_B_pw1, stages: [A, B], pos_weight: 1.0, sampler: none}
+    - {id: X3_B_pw_sqrt_ratio, stages: [A, B], pos_weight: sqrt_ratio, sampler: none}
+    - {id: X4_B_pw_ratio, stages: [A, B], pos_weight: ratio, sampler: none}
+    - {id: X5_B_sampler, stages: [A, B], pos_weight: 1.0, sampler: weighted_random}
+    - {id: X6_C_winner, stages: [C], pos_weight: inherit, sampler: inherit,
+       start_from_winner_of: [X2_B_pw1, X3_B_pw_sqrt_ratio, X4_B_pw_ratio, X5_B_sampler]}
+    # X7 (pooling max / avgmax) : ablation conditionnelle, ajoutée seulement si X6 et le dry-run la justifient
 
 evaluation:
   positive_label: 1

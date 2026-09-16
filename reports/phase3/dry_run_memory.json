@@ -1,0 +1,101 @@
+{
+  "rss_mb_after_model_build": 469.78125,
+  "steps": [
+    {
+      "batch_size": 8,
+      "profile": "A_head_only_live",
+      "step_s": 0.8198035999994318,
+      "peak_rss_mb_before": 489.6328125,
+      "peak_rss_mb_after": 616.97265625
+    },
+    {
+      "batch_size": 8,
+      "profile": "B_layer4",
+      "step_s": 1.1225307999993674,
+      "peak_rss_mb_before": 616.97265625,
+      "peak_rss_mb_after": 691.734375
+    },
+    {
+      "batch_size": 8,
+      "profile": "C_layer3_4",
+      "step_s": 1.345246799999586,
+      "peak_rss_mb_before": 691.734375,
+      "peak_rss_mb_after": 746.40234375
+    },
+    {
+      "batch_size": 8,
+      "profile": "full_unfrozen",
+      "step_s": 2.438802300000134,
+      "peak_rss_mb_before": 746.40234375,
+      "peak_rss_mb_after": 1065.9375
+    },
+    {
+      "batch_size": 16,
+      "profile": "A_head_only_live",
+      "step_s": 1.6832892000002175,
+      "peak_rss_mb_before": 1065.9375,
+      "peak_rss_mb_after": 1065.9375
+    },
+    {
+      "batch_size": 16,
+      "profile": "B_layer4",
+      "step_s": 2.5038179000002856,
+      "peak_rss_mb_before": 1065.9375,
+      "peak_rss_mb_after": 1065.9375
+    },
+    {
+      "batch_size": 16,
+      "profile": "C_layer3_4",
+      "step_s": 3.052058900000702,
+      "peak_rss_mb_before": 1065.9375,
+      "peak_rss_mb_after": 1065.9375
+    },
+    {
+      "batch_size": 16,
+      "profile": "full_unfrozen",
+      "step_s": 5.480863199999476,
+      "peak_rss_mb_before": 1065.9375,
+      "peak_rss_mb_after": 1606.03125
+    },
+    {
+      "batch_size": 32,
+      "profile": "A_head_only_live",
+      "step_s": 3.560620000000199,
+      "peak_rss_mb_before": 1606.03125,
+      "peak_rss_mb_after": 1606.03125
+    },
+    {
+      "batch_size": 32,
+      "profile": "B_layer4",
+      "step_s": 4.685445800000707,
+      "peak_rss_mb_before": 1606.03125,
+      "peak_rss_mb_after": 1606.03125
+    },
+    {
+      "batch_size": 32,
+      "profile": "C_layer3_4",
+      "step_s": 6.065568600000006,
+      "peak_rss_mb_before": 1606.03125,
+      "peak_rss_mb_after": 1606.03125
+    },
+    {
+      "batch_size": 32,
+      "profile": "full_unfrozen",
+      "step_s": 12.78346269999929,
+      "peak_rss_mb_before": 1606.03125,
+      "peak_rss_mb_after": 2592.05078125
+    }
+  ],
+  "peak_rss_mb_final": 2592.05078125,
+  "provenance": {
+    "created_at": "2026-09-16T14:11:50+00:00",
+    "vqi_version": "0.1.0",
+    "git_commit": "9172bb2ec98ff4f95e2f3eb5c398d24bfb6a6d90",
+    "git_dirty": true,
+    "config_hash": "45ede5e751b2",
+    "config_files": [
+      "configs\\default.yaml"
+    ],
+    "seed": 42
+  }
+}

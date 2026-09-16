@@ -98,6 +98,52 @@ def synthetic_config(synthetic_dataset: dict, tmp_path: Path) -> Config:
         "logging": {"file": None, "format": "text"},
         "eda": {"contact_sheet": {"n_per_class": 3}, "n_closest_pairs": 4},
         "evaluation": {"bootstrap": {"n_resamples": 50}},
+        "training": {
+            "num_workers": 0,
+            "batch_size": 8,
+            "stages": {
+                "A": {
+                    "trainable": ["head"],
+                    "lr": {"head": 1.0e-3},
+                    "max_epochs": 3,
+                    "patience": 2,
+                    "augment": False,
+                    "cached_features": True,
+                },
+                "B": {
+                    "trainable": ["layer4", "head"],
+                    "lr": {"layer4": 1.0e-4, "head": 1.0e-3},
+                    "max_epochs": 1,
+                    "patience": 1,
+                    "augment": True,
+                    "cached_features": False,
+                },
+            },
+            "cache": {"dir": str(tmp_path / "canvases")},
+            "dry_run": {
+                "batch_sizes": [4],
+                "num_workers_options": [0],
+                "n_loader_batches": 2,
+                "warmup_steps": 1,
+                "n_steps": 1,
+                "n_cache_check": 3,
+                "n_saturation_check": 4,
+                "determinism_steps": 2,
+            },
+        },
+        "phase3": {
+            "reference_experiment": "T1_svm",
+            "paired_bootstrap": {"n_resamples": 30},
+            "experiments": [
+                {"id": "P1_probe", "stages": ["A"], "pos_weight": 1.0, "sampler": "none"},
+                {
+                    "id": "P2_B",
+                    "stages": ["A", "B"],
+                    "pos_weight": "sqrt_ratio",
+                    "sampler": "weighted_random",
+                },
+            ],
+        },
         "baseline": {
             "features_cache_dir": str(tmp_path / "cache"),
             "svm": {"c_grid": [1.0], "gamma_grid": ["scale"], "cv_folds": 2},

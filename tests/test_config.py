@@ -29,7 +29,7 @@ def test_unknown_key_is_rejected(tmp_path: Path):
 
 def test_wrong_type_is_rejected(tmp_path: Path):
     override = tmp_path / "o.yaml"
-    override.write_text(yaml.safe_dump({"training": {"epochs": "twenty"}}), encoding="utf-8")
+    override.write_text(yaml.safe_dump({"training": {"batch_size": "sixteen"}}), encoding="utf-8")
     with pytest.raises(ConfigError, match="expected an integer"):
         load_config(DEFAULT, overrides=[override])
 
@@ -46,7 +46,7 @@ def test_override_changes_value_and_hash(tmp_path: Path):
     override.write_text(yaml.safe_dump({"training": {"batch_size": 8}}), encoding="utf-8")
     base, over = load_config(DEFAULT), load_config(DEFAULT, overrides=[override])
     assert over.training.batch_size == 8
-    assert base.training.epochs == over.training.epochs
+    assert base.training.num_workers == over.training.num_workers
     assert base.hash != over.hash
 
 
