@@ -1,6 +1,6 @@
 # Phase 3 — Résultats CNN (validation uniquement)
 
-Généré par `scripts/build_phase3_report.py` (config `45ede5e751b2`, seed 42). Chaque chiffre
+Généré par `scripts/build_phase3_report.py` (config `18eed599c81b`, seed 42). Chaque chiffre
 provient de `reports/phase3/experiments/*.json` ; le test officiel n'a été chargé par aucun run
 (`test_used = false` dans chaque JSON). Validation : 466 images dont 49 défectueuses — un écart de
 quelques centièmes n'est pas interprétable ; les IC bootstrap et le bootstrap **apparié** contre la référence

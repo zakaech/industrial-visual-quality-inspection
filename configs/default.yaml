@@ -139,7 +139,9 @@ training:
     pos_weight: 1.0                    # valeur par défaut ; les expériences Phase 3 la surchargent (1 | sqrt_ratio | ratio)
     focal_gamma: 2.0                   # utilisé seulement si loss.name == focal
   sampler: none                        # none | weighted_random (batches ≈ 50/50, poids 1/n_classe)
-  bn_policy: frozen_eval               # BatchNorm figée (eval) dans les couches gelées, entraînable dans les couches dégelées
+  bn_policy: all_eval                  # TOUTES les BatchNorm restent en eval (stats ImageNet figées) à chaque étape ;
+                                       # γ/β des couches dégelées restent entraînables ; dropout de la tête actif.
+                                       # frozen_eval (BN des couches dégelées en mode batch) rejeté : incident X2, perte 0,20 -> 15,3
   early_stopping:
     monitor: val_average_precision     # indépendante du seuil ; patience par étape
     mode: max

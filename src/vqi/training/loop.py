@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import math
 import time
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -26,6 +27,7 @@ from vqi.evaluation.metrics import confusion_at, threshold_for_recall
 from vqi.logging_utils import get_logger, log_event
 from vqi.models.factory import (
     DefectClassifier,
+    batchnorm_modules,
     param_groups,
     set_train_mode,
     set_trainable,
@@ -40,6 +42,10 @@ from vqi.training.losses import build_sampler
 logger = get_logger(__name__)
 
 RECALL_TARGET_FOR_MONITORING = 0.95
+
+
+class StageTransitionError(RuntimeError):
+    """The stage's training mode alters the checkpoint outputs before any optimizer step."""
 
 
 # --------------------------------------------------------------------------------------------- #
@@ -107,6 +113,7 @@ class StageOutcome:
     history: list[dict[str, Any]] = field(default_factory=list)
     cached_features: bool = False
     feature_seconds: float | None = None
+    transition_check: dict[str, Any] | None = None
 
     def as_dict(self) -> dict[str, Any]:
         d = self.__dict__.copy()
@@ -222,6 +229,55 @@ class Trainer:
         with self.history_path.open("a", encoding="utf-8", newline="\n") as fh:
             fh.write(json.dumps(row, default=float) + "\n")
 
+    # ------------------------------------------------------------------ stage transition
+    @torch.no_grad()
+    def transition_check(self, trainable: Sequence[str], tolerance: float = 1e-5) -> dict[str, Any]:
+        """Before any optimizer step of a stage: the checkpoint we start from must produce the
+        same validation outputs in the stage's *training mode* (BN policy applied, dropout
+        disabled for the comparison) as in ``eval()``. A difference means the mode switch itself
+        changes the network (e.g. BatchNorm using batch statistics) — the X2 incident.
+
+        Returns the measured differences; raises :class:`StageTransitionError` on failure.
+        """
+        _, val_loader = self.loaders(False)
+        self.model.eval()
+        ref_feats, ref_logits = [], []
+        for x, _, _ in val_loader:
+            f = self.model.features(x.to(self.device))
+            ref_feats.append(f)
+            ref_logits.append(self.model.head_forward(f).squeeze(1))
+        # stage training mode; head dropout switched off for a deterministic comparison
+        set_train_mode(self.model, trainable, self.cfg.training.bn_policy)
+        self.model.head.eval()
+        max_feat, max_logit = 0.0, 0.0
+        running_before = [m.running_mean.clone() for m in batchnorm_modules(self.model)]
+        for (x, _, _), rf, rl in zip(val_loader, ref_feats, ref_logits, strict=True):
+            f = self.model.features(x.to(self.device))
+            max_feat = max(max_feat, float((f - rf).abs().max()))
+            max_logit = max(
+                max_logit, float((self.model.head_forward(f).squeeze(1) - rl).abs().max())
+            )
+        running_after = [m.running_mean for m in batchnorm_modules(self.model)]
+        stats_drift = max(
+            float((a - b).abs().max()) for a, b in zip(running_before, running_after, strict=True)
+        )
+        self.model.eval()
+        result = {
+            "n_images": int(sum(len(r) for r in ref_logits)),
+            "bn_policy": self.cfg.training.bn_policy,
+            "max_abs_feature_diff": max_feat,
+            "max_abs_logit_diff": max_logit,
+            "bn_running_mean_drift": stats_drift,
+            "tolerance": tolerance,
+            "passed": bool(max_feat <= tolerance and max_logit <= tolerance and stats_drift == 0.0),
+        }
+        log_event(logger, "stage.transition_check", **result)
+        if not result["passed"]:
+            raise StageTransitionError(
+                f"training mode changes the checkpoint outputs before any update: {result}"
+            )
+        return result
+
     # ------------------------------------------------------------------ stages
     def run_stage(self, name: str) -> StageOutcome:
         stage = self.cfg.training.stage(name)
@@ -240,6 +296,8 @@ class Trainer:
         if stage.cached_features:
             self._run_probe(stage, outcome)
         else:
+            outcome.transition_check = self.transition_check(stage.trainable)
+            self._record({"stage": name, "epoch": 0, "transition_check": outcome.transition_check})
             self._run_finetune(stage, outcome)
         outcome.seconds = time.perf_counter() - t0
         # continue from the best epoch of this stage

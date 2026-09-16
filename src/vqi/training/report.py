@@ -108,7 +108,7 @@ def pr_figure(cfg: Config, results: dict[str, dict[str, Any]], path: Path) -> Pa
 def history_figure(results: dict[str, dict[str, Any]], path: Path) -> Path:
     fig, axes = plt.subplots(1, 3, figsize=(15, 4))
     for exp_id, r in results.items():
-        h = pd.DataFrame(r["history"])
+        h = pd.DataFrame([row for row in r["history"] if row["epoch"] > 0])
         h["global_epoch"] = range(1, len(h) + 1)
         axes[0].plot(h["global_epoch"], h["train_loss"], linewidth=1, label=f"{exp_id} train")
         axes[0].plot(
@@ -247,7 +247,7 @@ Phase 2 (`{ref_id}`, AP {_fmt(ref["metrics"]["average_precision"])}) sont la seu
                 for s in stages
             ]
         )
-        hist = pd.DataFrame(r["history"])[
+        hist = pd.DataFrame([row for row in r["history"] if row["epoch"] > 0])[
             [
                 "stage",
                 "epoch",
@@ -280,7 +280,7 @@ durée totale {_fmt(r["timing"]["total_seconds"] / 60, 1)} min, `test_used = {st
 
 **Métriques finales (validation)** : AP {_fmt(m["average_precision"])} [{_fmt(m["average_precision_ci"]["low"])} ; {_fmt(m["average_precision_ci"]["high"])}],
 ROC-AUC {_fmt(m["roc_auc"])} [{_fmt(m["roc_auc_ci"]["low"])} ; {_fmt(m["roc_auc_ci"]["high"])}], perte val {_fmt(m["val_loss"], 4)},
-probabilité moyenne prédite {_fmt(r["history"][-1]["mean_val_prob"])} (prévalence {_fmt(m["prevalence"])}).
+probabilité moyenne prédite {_fmt(hist.iloc[-1]["mean_val_prob"])} (prévalence {_fmt(m["prevalence"])}).
 
 {_md_table(_tradeoff(r))}
 

@@ -278,7 +278,7 @@ def summarise(cfg: Config) -> pd.DataFrame:
                 "recall@0.5": m["at_default_threshold"]["recall"],
                 "precision@0.5": m["at_default_threshold"]["precision"],
                 "f1@0.5": m["at_default_threshold"]["f1"],
-                "mean_val_prob": r["history"][-1]["mean_val_prob"],
+                "mean_val_prob": [h for h in r["history"] if h["epoch"] > 0][-1]["mean_val_prob"],
                 "delta_ap_vs_svm": cmp_["delta_average_precision"]["point"],
                 "delta_ap_ci_low": cmp_["delta_average_precision"]["low"],
                 "delta_ap_ci_high": cmp_["delta_average_precision"]["high"],

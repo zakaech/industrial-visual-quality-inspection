@@ -24,6 +24,7 @@ from vqi.data.splits import make_splits, write_splits
 from vqi.evaluation.compare import paired_bootstrap, recall_by_area
 from vqi.models.factory import (
     GROUPS,
+    batchnorm_modules,
     build_model,
     model_summary,
     param_groups,
@@ -33,7 +34,7 @@ from vqi.models.factory import (
 )
 from vqi.training.dryrun import run_dry_run
 from vqi.training.experiments import experiment_json, run_experiment, select_winner, summarise
-from vqi.training.loop import EarlyStopper, cosine_with_warmup
+from vqi.training.loop import EarlyStopper, StageTransitionError, Trainer, cosine_with_warmup
 from vqi.training.losses import build_loss, build_sampler, resolve_pos_weight
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -105,6 +106,36 @@ def test_staged_freezing_and_bn_policy(cfg: Config):
     assert {g["name"]: g["lr"] for g in groups} == {"layer4": 1e-4, "head": 1e-3}
     with pytest.raises(KeyError):
         set_trainable(model, ["fc"])
+
+
+def test_all_eval_policy_keeps_every_batchnorm_in_eval(cfg: Config):
+    """Real behaviour, not a config value: after model.train(), all_eval leaves every BatchNorm in
+    eval mode (running stats frozen, outputs identical to eval), keeps dropout active in the head
+    and keeps γ/β of unfrozen layers trainable."""
+    torch.manual_seed(0)
+    model = build_model(cfg, 197, 1668)
+    set_trainable(model, ["layer4", "head"])
+    model.train()
+    assert any(m.training for m in batchnorm_modules(model))  # plain train() would train BN
+    set_train_mode(model, ["layer4", "head"], "all_eval")
+    assert all(m.training is False for m in batchnorm_modules(model))
+    assert model.head[0].training is True  # dropout stays active
+    assert all(p.requires_grad for m in batchnorm_modules(model.layer4) for p in m.parameters())
+    x = torch.rand(4, 3, 640, 224)
+    before = [m.running_mean.clone() for m in batchnorm_modules(model)]
+    with torch.no_grad():
+        feats_train_mode = model.features(x)
+        after = [m.running_mean for m in batchnorm_modules(model)]
+        model.eval()
+        feats_eval = model.features(x)
+    assert all(torch.equal(a, b) for a, b in zip(before, after, strict=True))  # no drift
+    assert torch.equal(feats_train_mode, feats_eval)
+    # the rejected policy really does change the features (what the X2 incident showed)
+    set_train_mode(model, ["layer4", "head"], "frozen_eval")
+    assert any(m.training for m in batchnorm_modules(model.layer4))
+    with torch.no_grad():
+        feats_batch_stats = model.features(x)
+    assert not torch.allclose(feats_batch_stats, feats_eval)
 
 
 # ------------------------------------------------------------------------------ loss / sampler
@@ -193,6 +224,10 @@ def test_experiments_end_to_end(prepared):
 
     full = run_experiment(cfg.phase3.experiments[1], cfg, root)
     assert [s["name"] for s in full["run"]["stages"]] == ["A", "B"]
+    check = full["run"]["stages"][1]["transition_check"]
+    assert check["passed"] and check["max_abs_logit_diff"] <= check["tolerance"]
+    assert check["bn_running_mean_drift"] == 0.0 and check["bn_policy"] == "all_eval"
+    assert any(r.get("epoch") == 0 and "transition_check" in r for r in full["history"])
     assert full["spec"]["pos_weight_value"] == pytest.approx(
         resolve_pos_weight(
             "sqrt_ratio", full["data"]["train"]["n_pos"], full["data"]["train"]["n_neg"]
@@ -202,7 +237,8 @@ def test_experiments_end_to_end(prepared):
     assert Path(full["run"]["best_checkpoint"]).exists()
     history = full["history"]
     assert {r["stage"] for r in history} == {"A", "B"}
-    assert all("val_precision_r095" in r and "seconds" in r for r in history)
+    epochs = [r for r in history if r["epoch"] > 0]  # epoch 0 rows carry the transition check
+    assert all("val_precision_r095" in r and "seconds" in r for r in epochs)
 
     # checkpoint reload reproduces the validation scores exactly
     ckpt = torch.load(full["run"]["best_checkpoint"], map_location="cpu", weights_only=False)
@@ -224,3 +260,40 @@ def test_experiments_end_to_end(prepared):
     assert (
         json.loads(experiment_json(cfg, "P2_B").read_text(encoding="utf-8"))["spec"]["id"] == "P2_B"
     )
+
+
+def test_transition_check_detects_batch_statistics_policy(prepared, tmp_path):
+    """Under the rejected frozen_eval policy the check must fail before any optimizer step."""
+    cfg, root = prepared
+    override = tmp_path / "bn.yaml"
+    override.write_text("training:\n  bn_policy: frozen_eval\n", encoding="utf-8")
+    bad_cfg = load_config(cfg.source_files[0], overrides=[*cfg.source_files[1:], override])
+    from vqi.preprocessing import Preprocessor
+    from vqi.training.losses import build_loss as _build_loss
+
+    model = build_model(bad_cfg, 8, 30)
+    trainer = Trainer(
+        bad_cfg,
+        model,
+        Preprocessor.from_config(bad_cfg),
+        root,
+        tmp_path / "run",
+        _build_loss("bce_with_logits", 1.0, 2.0),
+        "none",
+        1.0,
+    )
+    set_trainable(model, ["layer4", "head"])
+    with pytest.raises(StageTransitionError):
+        trainer.transition_check(["layer4", "head"])
+    good_cfg = cfg  # all_eval
+    trainer_ok = Trainer(
+        good_cfg,
+        model,
+        Preprocessor.from_config(good_cfg),
+        root,
+        tmp_path / "run_ok",
+        _build_loss("bce_with_logits", 1.0, 2.0),
+        "none",
+        1.0,
+    )
+    assert trainer_ok.transition_check(["layer4", "head"])["passed"]

@@ -125,15 +125,32 @@ def set_trainable(model: DefectClassifier, trainable: Sequence[str]) -> dict[str
 
 
 def set_train_mode(model: DefectClassifier, trainable: Sequence[str], bn_policy: str) -> None:
-    """``model.train()`` for trainable groups; frozen groups in eval mode under ``frozen_eval``
-    (BatchNorm running stats untouched, dropout inactive)."""
+    """Put the model in the training mode of a stage.
+
+    * ``all_eval`` (validated policy): ``model.train()`` for dropout in the head, then **every**
+      BatchNorm layer back to ``eval()`` — running statistics (ImageNet) are frozen at every
+      stage; the affine γ/β of unfrozen layers still learn through ``requires_grad``. Frozen
+      groups are entirely in eval mode. This keeps stages A → B → C consistent with the linear
+      probe, which was trained on eval-mode features.
+    * ``frozen_eval``: BatchNorm of *unfrozen* groups uses batch statistics (rejected after the
+      X2 incident: switching layer4's BN to batch statistics multiplied the probe's logits by ~7).
+    * ``all_train``: plain ``model.train()``.
+    """
+    if bn_policy not in ("all_eval", "frozen_eval", "all_train"):
+        raise ValueError(f"unknown bn_policy: {bn_policy}")
     model.train()
-    if bn_policy == "frozen_eval":
+    if bn_policy in ("frozen_eval", "all_eval"):
         for name in GROUPS:
             if name not in trainable:
                 model.group(name).eval()
-    elif bn_policy != "all_train":
-        raise ValueError(f"unknown bn_policy: {bn_policy}")
+    if bn_policy == "all_eval":
+        for module in model.modules():
+            if isinstance(module, nn.modules.batchnorm._BatchNorm):
+                module.eval()
+
+
+def batchnorm_modules(model: nn.Module) -> list[nn.Module]:
+    return [m for m in model.modules() if isinstance(m, nn.modules.batchnorm._BatchNorm)]
 
 
 def param_groups(
