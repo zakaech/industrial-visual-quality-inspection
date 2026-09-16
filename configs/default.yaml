@@ -71,16 +71,33 @@ split:
   test_policy: single_final_evaluation # le script de test exige un threshold.json issu de la validation
   manifest_version: v1                 # nom du fichier data/splits/<manifest_version>.csv
 
-preprocessing:
-  color_mode: rgb                      # TBD après l'EDA (les images KSDD2 peuvent être en niveaux de gris de fait)
-  input_size:                          # H x W ; les images KSDD2 font ≈ 630 x 230 (portrait) — TBD après l'EDA
+preprocessing:                         # UN SEUL module (src/vqi/preprocessing) pour l'entraînement ET l'API (R4)
+  color_mode: rgb                      # validé Phase 1 : images quasi monochromes, mais l'écart entre canaux porte du signal
+  input_size:                          # H x W ; natif médian 637 x 229 -> échelle 0,978, 17 lignes de padding (Phase 2 §A.1)
     height: 640
     width: 224
   resize_mode: keep_aspect_pad         # keep_aspect_pad | stretch  (stretch rejeté : efface les petits défauts, D7)
+  pad_value: median                    # median | zero — médiane de l'image évite un bord artificiel ; ablation en Phase 2
   interpolation: area                  # cv2.INTER_AREA (réduction)
   normalization:                       # statistiques ImageNet, exigées par le backbone pré-entraîné (L5)
     mean: [0.485, 0.456, 0.406]
     std: [0.229, 0.224, 0.225]
+  enhancement:                         # opérateurs OpenCV appliqués après la géométrie, sur la luminance (LAB) ou RGB
+    active: none                       # variante utilisée par l'entraînement (Phase 3) et l'API ; décidée en Phase 2
+    variants:                          # chaque variante = liste ordonnée d'opérateurs ; testées SÉPARÉMENT (Phase 2 §A)
+      none: []
+      equalize:
+        - {op: equalize_hist}
+      clahe:
+        - {op: clahe, clip_limit: 2.0, tile_grid_size: [8, 8]}
+      denoise_light:
+        - {op: gaussian_blur, ksize: 3, sigma: 0.8}
+      denoise_strong:
+        - {op: median_blur, ksize: 5}
+      unsharp:
+        - {op: unsharp_mask, sigma: 1.5, amount: 1.0}
+      laplacian:                       # comparaison visuelle / CNR uniquement, hors matrice sauf si le CNR le justifie
+        - {op: laplacian_sharpen, strength: 0.5}
 
 augmentation:                          # appliquée au split train UNIQUEMENT ; toutes préservent le label (R10)
   horizontal_flip_p: 0.5
@@ -158,6 +175,65 @@ eda:                                   # analyse exploratoire (Phase 1) — sort
     thumb_height: 320
   defect_area_bins: [0, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 1000000]   # pixels, pour l'histogramme
   n_closest_pairs: 12                  # paires pHash les plus proches montrées côte à côte
+
+baseline:                              # Phase 2 : descripteurs classiques + scikit-learn, sorties dans reports/phase2/
+  report_subdir: phase2
+  features_cache_dir: data/processed/features   # une matrice .npz par (variante, padding), invalidée par hash
+  allowed_splits: [train, val]         # le test officiel est interdit ici (le chargeur lève une exception)
+  histogram_bins: 32                   # histogramme gris normalisé
+  lbp:                                 # LBP uniforme invariant en rotation (P + 2 bins par échelle)
+    - {points: 8, radius: 1}
+    - {points: 16, radius: 2}
+  local_stats:
+    patch_size: 32                     # grille de patches : les défauts sont locaux (aire médiane 1,6 % de l'image)
+  feature_groups:                      # nom -> extracteurs concaténés
+    contrast_only: [contrast_only]     # référence triviale (Phase 1 : AUC 0,72 sur le train officiel)
+    global_stats: [global_stats, histogram]
+    lbp: [lbp]
+    local_stats: [local_stats]
+    combined: [global_stats, histogram, lbp, local_stats]
+  svm:
+    kernel: rbf
+    c_grid: [0.1, 1.0, 10.0, 100.0]
+    gamma_grid: [scale, 0.001, 0.01, 0.1]
+    cv_folds: 5                        # validation croisée stratifiée par groupe, À L'INTÉRIEUR DU TRAIN uniquement
+    cv_scoring: average_precision
+  class_weights:                       # options comparées en E2 ; "manual" est EXPLORATOIRE, pas un coût métier
+    none: null
+    balanced: balanced
+    manual: {1: 3.0}                   # ≈ racine du ratio de déséquilibre (8,5)
+  random_forest:
+    n_estimators: 500
+    max_features: sqrt
+    class_weight: balanced
+  representative_images:               # figures de comparaison : images du split TRAIN uniquement
+    n_healthy: 2
+    small_defect_max_area: 100
+  cnr:                                 # contraste-sur-bruit du défaut, depuis les masques (analyse, jamais entraînement)
+    ring_width: 6
+    area_bins: [0, 100, 250, 1000, 2500, 5000, 1000000]
+    variants: [none, equalize, clahe, denoise_light, denoise_strong, unsharp, laplacian]
+  experiments:                         # fit sur train, mesure sur validation ; hyperparamètres par CV interne au train
+    - {id: E0_contrast_only, features: contrast_only, preprocessing: none, classifier: none, class_weight: none}
+    - {id: E1_global_stats, features: global_stats, preprocessing: none, classifier: svm, class_weight: balanced}
+    - {id: E1_lbp, features: lbp, preprocessing: none, classifier: svm, class_weight: balanced}
+    - {id: E1_local_stats, features: local_stats, preprocessing: none, classifier: svm, class_weight: balanced}
+    - {id: E1_combined, features: combined, preprocessing: none, classifier: svm, class_weight: balanced}
+    - {id: E2_cw_none, features: combined, preprocessing: none, classifier: svm, class_weight: none}
+    - {id: E2_cw_manual, features: combined, preprocessing: none, classifier: svm, class_weight: manual}
+    - {id: E3_equalize, features: combined, preprocessing: equalize, classifier: svm, class_weight: balanced}
+    - {id: E3_clahe, features: combined, preprocessing: clahe, classifier: svm, class_weight: balanced}
+    - {id: E3_denoise_light, features: combined, preprocessing: denoise_light, classifier: svm, class_weight: balanced}
+    - {id: E3_denoise_strong, features: combined, preprocessing: denoise_strong, classifier: svm, class_weight: balanced}
+    - {id: E3_unsharp, features: combined, preprocessing: unsharp, classifier: svm, class_weight: balanced}
+    - {id: E3_pad_zero, features: combined, preprocessing: none, classifier: svm, class_weight: balanced, pad_value: zero}
+    - {id: E4_random_forest, features: combined, preprocessing: none, classifier: rf, class_weight: balanced}
+    # contrôle de bord de grille : gamma = 0,001 (borne basse) sélectionné dans toutes les expériences SVM
+    - {id: E5_grid_edge_check, features: combined, preprocessing: none, classifier: svm, class_weight: balanced,
+       c_grid: [10.0, 100.0, 1000.0], gamma_grid: [0.0001, 0.0003, 0.001]}
+    # RBF à gamma -> 0 et C grand tend vers un séparateur linéaire : contrôle avec un noyau linéaire
+    - {id: E5_linear_svm, features: combined, preprocessing: none, classifier: svm, class_weight: balanced,
+       kernel: linear, c_grid: [0.001, 0.01, 0.1, 1.0, 10.0]}
 
 inference:
   export_format: torchscript           # torchscript | state_dict

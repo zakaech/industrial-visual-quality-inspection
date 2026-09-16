@@ -127,7 +127,7 @@ pytest
 
 | Id | Décision | Élément de preuve | Proposition |
 |---|---|---|---|
-| P1-1 | `split.duplicates.max_hamming_distance` | rapport §5 | `null` (aucun quasi-doublon observé) |
-| P1-2 | `preprocessing.color_mode` | rapport §3 | `rgb` |
+| P1-1 | `split.duplicates.max_hamming_distance` | rapport §5 | `null` — **validé** (aucun quasi-doublon retenu) |
+| P1-2 | `preprocessing.color_mode` | rapport §3 | `rgb` — **validé** |
 | P1-3 | `augmentation.rotate_90_p` | planche de contact (pièces en portrait, défauts sans orientation privilégiée) | à valider : 0 en v1, flips seulement |
 | P1-4 | stratégie de déséquilibre | rapport §2 | reportée à la Phase 3 |

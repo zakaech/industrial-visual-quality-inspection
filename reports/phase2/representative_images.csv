@@ -1,0 +1,9 @@
+role,image_id,image_path,mask_path,label,defect_area_px
+healthy_1,11300,data/raw/kolektor_sdd2/train/11300.png,data/raw/kolektor_sdd2/train/11300_GT.png,0,0
+healthy_2,11362,data/raw/kolektor_sdd2/train/11362.png,data/raw/kolektor_sdd2/train/11362_GT.png,0,0
+small_defect,10844,data/raw/kolektor_sdd2/train/10844.png,data/raw/kolektor_sdd2/train/10844_GT.png,1,78
+median_defect,12131,data/raw/kolektor_sdd2/train/12131.png,data/raw/kolektor_sdd2/train/12131_GT.png,1,2204
+large_defect,10309,data/raw/kolektor_sdd2/train/10309.png,data/raw/kolektor_sdd2/train/10309_GT.png,1,43011
+darkest,11813,data/raw/kolektor_sdd2/train/11813.png,data/raw/kolektor_sdd2/train/11813_GT.png,0,0
+highest_contrast_healthy,11201,data/raw/kolektor_sdd2/train/11201.png,data/raw/kolektor_sdd2/train/11201_GT.png,0,0
+lowest_contrast,11003,data/raw/kolektor_sdd2/train/11003.png,data/raw/kolektor_sdd2/train/11003_GT.png,1,3671

@@ -3,8 +3,18 @@
 Pipeline de deep learning pour la détection automatique de défauts de surface sur des pièces industrielles — de la
 donnée brute jusqu'à un service d'inférence conteneurisé et appelable.
 
-**État : Phase 0 (cadrage) — aucun modèle n'a encore été entraîné. Tout chiffre ci-dessous est un emplacement à
-remplir tant qu'il ne provient pas d'une exécution journalisée.**
+**État : Phase 2 livrée (prétraitement OpenCV partagé entraînement/API, baseline classique) — aucun réseau de
+neurones n'a encore été entraîné. Tout chiffre de résultat ci-dessous provient d'une exécution journalisée ou est
+marqué TBD.**
+
+| Phase | Contenu | Document |
+|---|---|---|
+| 0 | Cadrage, choix du dataset, métriques, risques | [docs/00_phase0_framing.md](docs/00_phase0_framing.md) |
+| 1 | Ingestion, manifeste, doublons, découpage, EDA | [docs/01_phase1_ingestion.md](docs/01_phase1_ingestion.md) · [rapport EDA](reports/eda/eda_report.md) |
+| 2 | Prétraitement OpenCV, comparaison des transformations (CNR), baseline SVM | [docs/02_phase2_preprocessing_baseline.md](docs/02_phase2_preprocessing_baseline.md) · [rapport Phase 2](reports/phase2/phase2_report.md) |
+| 3 | Entraînement CNN (ResNet-18) | à venir |
+| 4 | Évaluation, seuil, évaluation finale unique sur le test | à venir |
+| 5 | API FastAPI + Docker | à venir |
 
 ## Problème
 
@@ -33,6 +43,18 @@ Docker. Schéma et contrats par étape : [docs/pipeline.md](docs/pipeline.md).
 
 ## Résultats
 
+Baseline classique (Phase 2 — validation uniquement, 49 défectueuses ; IC bootstrap 95 %) :
+
+| Modèle | AP val | IC 95 % AP | ROC-AUC val | Précision à rappel 0,95 | FPR à rappel 0,95 |
+|---|---|---|---|---|---|
+| contraste global seul (référence triviale) | 0,402 | [0,268 ; 0,550] | 0,704 | 0,106 | 0,950 |
+| 82 descripteurs classiques + SVM (`E5_grid_edge_check`) | 0,862 | [0,770 ; 0,935] | 0,945 | 0,233 | 0,372 |
+
+Aucun prétraitement OpenCV (égalisation, CLAHE, débruitage, rehaussement) n'améliore la baseline de façon
+significative → `preprocessing.enhancement.active: none`. Détails : [rapport Phase 2](reports/phase2/phase2_report.md).
+
+CNN (Phase 3–4) :
+
 | Partition | Average Precision | Rappel au point de fonctionnement | Précision au point de fonctionnement | FPR | Run id |
 |---|---|---|---|---|---|
 | validation | TBD | TBD | TBD | TBD | TBD |
@@ -46,41 +68,47 @@ Point de fonctionnement : politique de seuil `min_recall`, rappel cible 0,95 sur
 .
 ├── configs/            # configuration YAML (default.yaml + experiments/)
 ├── data/               # raw/ interim/ processed/ ignorés par git ; splits/ versionné
-├── docs/               # cadrage, pipeline, journal des décisions
-├── notebooks/          # exploration uniquement (EDA) ; rien dans le pipeline n'en dépend
-├── scripts/            # points d'entrée CLI : download, make_splits, train, evaluate, export, serve
+├── docs/               # cadrage, pipeline, une note par phase
+├── notebooks/          # exploration uniquement ; rien dans le pipeline n'en dépend
+├── reports/            # eda/, phase2/ : rapports Markdown générés + figures + résultats JSON/CSV
+├── scripts/            # points d'entrée CLI (une action par script)
 ├── src/vqi/            # le package (vqi = visual quality inspection)
-│   ├── data/           # téléchargement, intégrité, manifeste, doublons, découpage, Dataset
-│   ├── preprocessing/  # transformations OpenCV partagées par l'entraînement et l'inférence
-│   ├── models/         # fabrique de backbones, têtes de classification
-│   ├── training/       # boucle, pertes, callbacks, checkpoints
-│   ├── evaluation/     # métriques, politiques de seuil, calibration, figures, analyse d'erreurs
-│   ├── inference/      # Predictor : charger le bundle → prétraiter → scorer → décider
-│   └── api/            # application FastAPI, schémas, routes
-├── tests/
-├── runs/               # sorties d'expériences, ignorées par git
-└── Dockerfile
+│   ├── data/           # téléchargement, intégrité, manifeste, doublons, découpage, EDA
+│   ├── preprocessing/  # UN module OpenCV partagé par l'entraînement et l'inférence (io, geometry, enhance, pipeline)
+│   ├── baseline/       # descripteurs classiques (stats, histogramme, LBP, stats locales) + SVM/RF + rapport
+│   ├── evaluation/     # métriques, seuils, bootstrap — indépendants du modèle
+│   ├── models/         # (Phase 3) fabrique de backbones, têtes
+│   ├── training/       # (Phase 3) boucle, pertes, callbacks, checkpoints
+│   ├── inference/      # (Phase 5) Predictor : charger le bundle → prétraiter → scorer → décider
+│   └── api/            # (Phase 5) application FastAPI
+├── tests/              # 58 tests, dataset synthétique, sans données réelles
+├── runs/               # sorties d'entraînement, ignorées par git
+└── Dockerfile          # (Phase 5)
 ```
 
 ## Stack
 
-Python 3.11 · PyTorch / torchvision · OpenCV · scikit-learn · NumPy / pandas · FastAPI / Uvicorn · Docker.
-Machine cible sans GPU CUDA (entraînement sur CPU).
+Python 3.11 · PyTorch / torchvision · OpenCV · scikit-learn · NumPy / pandas · FastAPI / Uvicorn · Docker
+(+ matplotlib pour les figures). Machine cible sans GPU CUDA (tout tourne sur CPU).
 
 ## Démarrage
 
 ```bash
 py -3.11 -m venv .venv && .venv\Scripts\activate
 pip install -r requirements.txt && pip install -e ".[dev]"
-python scripts/download_data.py      # télécharge (853 Mo), vérifie le SHA-256, extrait
-python scripts/build_manifest.py     # manifeste + analyse des doublons
-python scripts/make_splits.py        # partition train/val/test → data/splits/v1.csv
-python scripts/run_eda.py            # rapport + figures → reports/eda/
-pytest                               # 18 tests, dataset synthétique, sans données réelles
+python scripts/download_data.py           # télécharge (853 Mo), vérifie le SHA-256, extrait
+python scripts/build_manifest.py          # manifeste + analyse des doublons
+python scripts/make_splits.py             # partition train/val/test → data/splits/v1.csv
+python scripts/run_eda.py                 # rapport + figures → reports/eda/
+python scripts/compare_preprocessing.py   # Phase 2 : figures + CNR → reports/phase2/
+python scripts/run_baseline.py            # Phase 2 : 16 expériences SVM/RF → reports/phase2/experiments.csv
+python scripts/build_phase2_report.py     # Phase 2 : rapport Markdown
+pytest
 ```
 
 ## Reproductibilité
 
 Graine `42` partout (`reproducibility.seed` dans [configs/default.yaml](configs/default.yaml)), algorithmes torch
 déterministes quand ils existent, workers de DataLoader seedés, configuration figée et hash git enregistrés avec
-chaque run. Le non-déterminisme résiduel sur CPU est documenté dans le cadrage (risque R9).
+chaque artefact (`*.meta.json`, un JSON par expérience). Le non-déterminisme résiduel sur CPU est documenté dans le
+cadrage (risque R9).

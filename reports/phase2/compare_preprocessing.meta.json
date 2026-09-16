@@ -1,0 +1,97 @@
+{
+  "created_at": "2026-09-16T01:26:57+00:00",
+  "vqi_version": "0.1.0",
+  "git_commit": "565316b21057653f94d90300dfb5e412ce3ff187",
+  "git_dirty": true,
+  "config_hash": "84df535a58b1",
+  "config_files": [
+    "configs\\default.yaml"
+  ],
+  "seed": 42,
+  "representatives": [
+    {
+      "role": "healthy_1",
+      "image_id": "11300",
+      "image_path": "data/raw/kolektor_sdd2/train/11300.png",
+      "mask_path": "data/raw/kolektor_sdd2/train/11300_GT.png",
+      "label": 0,
+      "defect_area_px": 0
+    },
+    {
+      "role": "healthy_2",
+      "image_id": "11362",
+      "image_path": "data/raw/kolektor_sdd2/train/11362.png",
+      "mask_path": "data/raw/kolektor_sdd2/train/11362_GT.png",
+      "label": 0,
+      "defect_area_px": 0
+    },
+    {
+      "role": "small_defect",
+      "image_id": "10844",
+      "image_path": "data/raw/kolektor_sdd2/train/10844.png",
+      "mask_path": "data/raw/kolektor_sdd2/train/10844_GT.png",
+      "label": 1,
+      "defect_area_px": 78
+    },
+    {
+      "role": "median_defect",
+      "image_id": "12131",
+      "image_path": "data/raw/kolektor_sdd2/train/12131.png",
+      "mask_path": "data/raw/kolektor_sdd2/train/12131_GT.png",
+      "label": 1,
+      "defect_area_px": 2204
+    },
+    {
+      "role": "large_defect",
+      "image_id": "10309",
+      "image_path": "data/raw/kolektor_sdd2/train/10309.png",
+      "mask_path": "data/raw/kolektor_sdd2/train/10309_GT.png",
+      "label": 1,
+      "defect_area_px": 43011
+    },
+    {
+      "role": "darkest",
+      "image_id": "11813",
+      "image_path": "data/raw/kolektor_sdd2/train/11813.png",
+      "mask_path": "data/raw/kolektor_sdd2/train/11813_GT.png",
+      "label": 0,
+      "defect_area_px": 0
+    },
+    {
+      "role": "highest_contrast_healthy",
+      "image_id": "11201",
+      "image_path": "data/raw/kolektor_sdd2/train/11201.png",
+      "mask_path": "data/raw/kolektor_sdd2/train/11201_GT.png",
+      "label": 0,
+      "defect_area_px": 0
+    },
+    {
+      "role": "lowest_contrast",
+      "image_id": "11003",
+      "image_path": "data/raw/kolektor_sdd2/train/11003.png",
+      "mask_path": "data/raw/kolektor_sdd2/train/11003_GT.png",
+      "label": 1,
+      "defect_area_px": 3671
+    }
+  ],
+  "figures": {
+    "contrast_full": "reports/phase2/figures/contrast_full.png",
+    "contrast_zoom": "reports/phase2/figures/contrast_zoom.png",
+    "denoise_full": "reports/phase2/figures/denoise_full.png",
+    "denoise_zoom": "reports/phase2/figures/denoise_zoom.png",
+    "sharpen_full": "reports/phase2/figures/sharpen_full.png",
+    "sharpen_zoom": "reports/phase2/figures/sharpen_zoom.png",
+    "histograms": "reports/phase2/figures/histograms.png",
+    "cnr_by_area": "reports/phase2/figures/cnr_by_area.png"
+  },
+  "n_defective_train_images": 197,
+  "variants": [
+    "none",
+    "equalize",
+    "clahe",
+    "denoise_light",
+    "denoise_strong",
+    "unsharp",
+    "laplacian"
+  ]
+}

@@ -97,6 +97,37 @@ def synthetic_config(synthetic_dataset: dict, tmp_path: Path) -> Config:
         },
         "logging": {"file": None, "format": "text"},
         "eda": {"contact_sheet": {"n_per_class": 3}, "n_closest_pairs": 4},
+        "evaluation": {"bootstrap": {"n_resamples": 50}},
+        "baseline": {
+            "features_cache_dir": str(tmp_path / "cache"),
+            "svm": {"c_grid": [1.0], "gamma_grid": ["scale"], "cv_folds": 2},
+            "random_forest": {"n_estimators": 20},
+            "representative_images": {"n_healthy": 1},
+            "cnr": {"variants": ["none", "clahe", "denoise_light"]},
+            "experiments": [
+                {
+                    "id": "T0_contrast",
+                    "features": "contrast_only",
+                    "preprocessing": "none",
+                    "classifier": "none",
+                    "class_weight": "none",
+                },
+                {
+                    "id": "T1_svm",
+                    "features": "combined",
+                    "preprocessing": "none",
+                    "classifier": "svm",
+                    "class_weight": "balanced",
+                },
+                {
+                    "id": "T2_rf",
+                    "features": "local_stats",
+                    "preprocessing": "clahe",
+                    "classifier": "rf",
+                    "class_weight": "balanced",
+                },
+            ],
+        },
     }
     override_path = tmp_path / "override.yaml"
     override_path.write_text(yaml.safe_dump(override), encoding="utf-8")

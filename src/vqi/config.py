@@ -121,12 +121,21 @@ class NormalizationConfig:
 
 
 @dataclass(frozen=True)
+class EnhancementConfig:
+    active: str
+    # variant name -> ordered list of {"op": name, **params}; validated when a pipeline is built
+    variants: dict[str, Any]
+
+
+@dataclass(frozen=True)
 class PreprocessingConfig:
     color_mode: str
     input_size: InputSize
     resize_mode: str
+    pad_value: str
     interpolation: str
     normalization: NormalizationConfig
+    enhancement: EnhancementConfig
 
 
 @dataclass(frozen=True)
@@ -265,6 +274,77 @@ class EdaConfig:
 
 
 @dataclass(frozen=True)
+class LbpScale:
+    points: int
+    radius: int
+
+
+@dataclass(frozen=True)
+class LocalStatsConfig:
+    patch_size: int
+
+
+@dataclass(frozen=True)
+class SvmConfig:
+    kernel: str
+    c_grid: tuple[float, ...]
+    gamma_grid: tuple[Any, ...]
+    cv_folds: int
+    cv_scoring: str
+
+
+@dataclass(frozen=True)
+class RandomForestConfig:
+    n_estimators: int
+    max_features: str
+    class_weight: str
+
+
+@dataclass(frozen=True)
+class RepresentativeImagesConfig:
+    n_healthy: int
+    small_defect_max_area: int
+
+
+@dataclass(frozen=True)
+class CnrConfig:
+    ring_width: int
+    area_bins: tuple[int, ...]
+    variants: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class ExperimentSpec:
+    id: str
+    features: str
+    preprocessing: str
+    classifier: str
+    class_weight: str
+    pad_value: str | None = None
+    # optional per-experiment SVM grid (grid-edge checks); defaults to baseline.svm
+    c_grid: tuple[float, ...] | None = None
+    gamma_grid: tuple[Any, ...] | None = None
+    kernel: str | None = None  # defaults to baseline.svm.kernel; "linear" ignores gamma
+
+
+@dataclass(frozen=True)
+class BaselineConfig:
+    report_subdir: str
+    features_cache_dir: Path
+    allowed_splits: tuple[str, ...]
+    histogram_bins: int
+    lbp: tuple[LbpScale, ...]
+    local_stats: LocalStatsConfig
+    feature_groups: dict[str, Any]
+    svm: SvmConfig
+    class_weights: dict[str, Any]
+    random_forest: RandomForestConfig
+    representative_images: RepresentativeImagesConfig
+    cnr: CnrConfig
+    experiments: tuple[ExperimentSpec, ...]
+
+
+@dataclass(frozen=True)
 class InferenceConfig:
     export_format: str
     bundle_dir: Path
@@ -307,6 +387,7 @@ class Config:
     training: TrainingConfig
     evaluation: EvaluationConfig
     eda: EdaConfig
+    baseline: BaselineConfig
     inference: InferenceConfig
     api: ApiConfig
     logging: LoggingConfig
