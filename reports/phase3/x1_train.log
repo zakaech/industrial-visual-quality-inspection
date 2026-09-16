@@ -1,0 +1,28 @@
+vqi.cli: bootstrap | config=configs/default.yaml overrides=[] config_hash=45ede5e751b2 seed=42 cwd=C:\Users\zakii\OneDrive\Bureau\projets cv\industrial-visual-quality-inspection
+vqi.training.loop: stage.start | stage=A trainable=513 lr={'head': 0.001} augment=False cached_features=True
+vqi.training.features: features.frozen | split=train n=1865 dim=512 seconds=259.2
+vqi.training.features: features.frozen | split=val n=466 dim=512 seconds=77.2
+vqi.training.loop: epoch | stage=A epoch=1 train_loss=0.3325 val_loss=0.3203 val_ap=0.7306 val_p_r095=0.188 seconds=0.1 improved=True
+vqi.training.loop: epoch | stage=A epoch=2 train_loss=0.3111 val_loss=0.2924 val_ap=0.7445 val_p_r095=0.1437 seconds=0.1 improved=True
+vqi.training.loop: epoch | stage=A epoch=3 train_loss=0.2879 val_loss=0.2709 val_ap=0.7592 val_p_r095=0.1403 seconds=0.1 improved=True
+vqi.training.loop: epoch | stage=A epoch=4 train_loss=0.2719 val_loss=0.2548 val_ap=0.7677 val_p_r095=0.1403 seconds=0.1 improved=True
+vqi.training.loop: epoch | stage=A epoch=5 train_loss=0.2597 val_loss=0.2418 val_ap=0.7695 val_p_r095=0.142 seconds=0.1 improved=False
+vqi.training.loop: epoch | stage=A epoch=6 train_loss=0.249 val_loss=0.2319 val_ap=0.773 val_p_r095=0.1411 seconds=0.1 improved=True
+vqi.training.loop: epoch | stage=A epoch=7 train_loss=0.2415 val_loss=0.2237 val_ap=0.7748 val_p_r095=0.1407 seconds=0.1 improved=False
+vqi.training.loop: epoch | stage=A epoch=8 train_loss=0.2351 val_loss=0.2175 val_ap=0.7752 val_p_r095=0.1407 seconds=0.1 improved=True
+vqi.training.loop: epoch | stage=A epoch=9 train_loss=0.2307 val_loss=0.2126 val_ap=0.7812 val_p_r095=0.1407 seconds=0.1 improved=True
+vqi.training.loop: epoch | stage=A epoch=10 train_loss=0.2234 val_loss=0.2083 val_ap=0.7818 val_p_r095=0.1411 seconds=0.1 improved=False
+vqi.training.loop: epoch | stage=A epoch=11 train_loss=0.2233 val_loss=0.2045 val_ap=0.7814 val_p_r095=0.1411 seconds=0.1 improved=False
+vqi.training.loop: epoch | stage=A epoch=12 train_loss=0.2192 val_loss=0.2012 val_ap=0.7832 val_p_r095=0.1416 seconds=0.1 improved=True
+vqi.training.loop: epoch | stage=A epoch=13 train_loss=0.2163 val_loss=0.1987 val_ap=0.7863 val_p_r095=0.1416 seconds=0.1 improved=True
+vqi.training.loop: epoch | stage=A epoch=14 train_loss=0.2176 val_loss=0.1967 val_ap=0.788 val_p_r095=0.1424 seconds=0.1 improved=False
+vqi.training.loop: epoch | stage=A epoch=15 train_loss=0.2132 val_loss=0.1946 val_ap=0.791 val_p_r095=0.1424 seconds=0.1 improved=True
+vqi.training.loop: epoch | stage=A epoch=16 train_loss=0.2094 val_loss=0.193 val_ap=0.7923 val_p_r095=0.1433 seconds=0.1 improved=False
+vqi.training.loop: epoch | stage=A epoch=17 train_loss=0.2122 val_loss=0.1918 val_ap=0.792 val_p_r095=0.1433 seconds=0.1 improved=False
+vqi.training.loop: epoch | stage=A epoch=18 train_loss=0.2085 val_loss=0.1907 val_ap=0.7921 val_p_r095=0.1442 seconds=0.1 improved=False
+vqi.training.loop: epoch | stage=A epoch=19 train_loss=0.2075 val_loss=0.1897 val_ap=0.7917 val_p_r095=0.1442 seconds=0.1 improved=False
+vqi.training.loop: epoch | stage=A epoch=20 train_loss=0.2062 val_loss=0.1889 val_ap=0.7918 val_p_r095=0.1437 seconds=0.1 improved=False
+vqi.training.loop: stage.done | stage=A epochs=20 best_epoch=15 best=0.791 seconds=341.0
+vqi.training.experiments: experiment.done | id=X1_linear_probe val_ap=0.791 precision_r095=0.1424 delta_ap_vs_phase2=-0.0711 seconds=424.0
+             id stages  pos_weight sampler  val_ap  precision@r0.95  fpr@r0.95  delta_ap_vs_svm  delta_p95_vs_svm  epochs  total_seconds
+X1_linear_probe      A      1.0000    none  0.7910           0.1424     0.6787          -0.0711           -0.0902      20       424.0353

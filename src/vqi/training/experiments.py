@@ -118,6 +118,7 @@ def run_experiment(
 
     pre = Preprocessor.from_config(cfg)
     model = build_model(cfg, n_pos, n_neg, pooling=spec.pooling)
+    head_bias_init = float(model.head[1].bias.detach()[0])  # before any update: log(n_pos/n_neg)
     run_id = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{spec.id}_{cfg.hash}"
     run_dir = cfg.paths.runs_dir / run_id
     trainer = Trainer(
@@ -195,7 +196,7 @@ def run_experiment(
             "bn_policy": cfg.training.bn_policy,
         },
         "preprocessor": pre.describe(),
-        "model": model_summary(model),
+        "model": {**model_summary(model), "head_bias_init": head_bias_init},
         "data": {
             "train": {"n": int(len(train_rows)), "n_pos": n_pos, "n_neg": n_neg},
             "val": {"n": int(len(val_rows)), "n_pos": int((val_rows["label"] == 1).sum())},

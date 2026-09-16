@@ -210,6 +210,15 @@ def test_experiments_end_to_end(prepared):
 
     summary = summarise(cfg)
     assert list(summary["id"]) == ["P1_probe", "P2_B"]
+    assert full["model"]["head_bias_init"] == pytest.approx(
+        math.log(full["data"]["train"]["n_pos"] / full["data"]["train"]["n_neg"])
+    )
+    from vqi.training.report import build_report
+
+    report = build_report(cfg)
+    text = report.read_text(encoding="utf-8")
+    assert "Comparaison avec la référence Phase 2" in text and "P2_B" in text
+    assert (report.parent / "figures" / "pr_curves.png").exists()
     winner, _ = select_winner(cfg, ("P1_probe", "P2_B"))
     assert winner in ("P1_probe", "P2_B")
     assert (
