@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-16T16:27:53+00:00",
+  "created_at": "2026-09-16T20:55:11+00:00",
   "vqi_version": "0.1.0",
-  "git_commit": "269938e6bacbd1b6c9e970910dc941257e06dba7",
+  "git_commit": "36dcdc9635968c467ed2d9d531e1cc918f5ac973",
   "git_dirty": true,
   "config_hash": "18eed599c81b",
   "config_files": [
@@ -9,7 +9,11 @@
   ],
   "seed": 42,
   "experiments": [
-    "X1_linear_probe"
+    "X1_linear_probe",
+    "X2_B_pw1",
+    "X3_B_pw_sqrt_ratio",
+    "X4_B_pw_ratio",
+    "X5_B_sampler"
   ],
-  "n": 1
+  "n": 5
 }
