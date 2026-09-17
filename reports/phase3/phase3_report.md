@@ -16,6 +16,7 @@ Phase 2 (`E5_grid_edge_check`, AP 0,862) sont la seule base de comparaison.
 | X3_B_pw_sqrt_ratio | 0,904 | [0,828 ; 0,966] | 0,402 | 0,214 | 0,415 | 0,129 | 0,953 | 0,042 [-0,036 ; 0,124] | -0,019 [-0,290 ; 0,664] |
 | X4_B_pw_ratio | 0,919 | [0,848 ; 0,976] | 0,464 | 0,251 | 0,336 | 0,209 | 0,968 | 0,057 [-0,023 ; 0,143] | 0,019 [-0,286 ; 0,754] |
 | X5_B_sampler | 0,877 | [0,787 ; 0,953] | 0,204 | 0,110 | 0,911 | 0,107 | 0,916 | 0,015 [-0,072 ; 0,099] | -0,123 [-0,439 ; 0,410] |
+| X6_C_winner | 0,941 | [0,891 ; 0,979] | 0,763 | 0,573 | 0,084 | 0,348 | 0,987 | 0,079 [0,011 ; 0,153] | 0,340 [0,022 ; 0,659] |
 
 ![](figures/pr_curves.png)
 
@@ -83,6 +84,8 @@ Rappel par taille de défaut au seuil « rappel ≥ 0,95 » :
 | [1000, 2500) | 9 | 1,000 | 0 |
 | [2500, 5000) | 11 | 1,000 | 0 |
 | [5000, 1000000) | 14 | 1,000 | 0 |
+
+
 
 Comparaison appariée avec `E5_grid_edge_check` (1000 rééchantillonnages) : ΔAP -0,071
 [-0,164 ; 0,013] ; Δprécision@0,95 -0,090
@@ -158,6 +161,8 @@ Rappel par taille de défaut au seuil « rappel ≥ 0,95 » :
 | [1000, 2500) | 9 | 1,000 | 0 |
 | [2500, 5000) | 11 | 1,000 | 0 |
 | [5000, 1000000) | 14 | 1,000 | 0 |
+
+
 
 Comparaison appariée avec `E5_grid_edge_check` (1000 rééchantillonnages) : ΔAP 0,044
 [-0,037 ; 0,128] ; Δprécision@0,95 -0,045
@@ -235,6 +240,8 @@ Rappel par taille de défaut au seuil « rappel ≥ 0,95 » :
 | [2500, 5000) | 11 | 1,000 | 0 |
 | [5000, 1000000) | 14 | 1,000 | 0 |
 
+
+
 Comparaison appariée avec `E5_grid_edge_check` (1000 rééchantillonnages) : ΔAP 0,042
 [-0,036 ; 0,124] ; Δprécision@0,95 -0,019
 [-0,290 ; 0,664] ; ΔFPR@0,95 0,043
@@ -309,6 +316,8 @@ Rappel par taille de défaut au seuil « rappel ≥ 0,95 » :
 | [1000, 2500) | 9 | 0,889 | 1 |
 | [2500, 5000) | 11 | 1,000 | 0 |
 | [5000, 1000000) | 14 | 1,000 | 0 |
+
+
 
 Comparaison appariée avec `E5_grid_edge_check` (1000 rééchantillonnages) : ΔAP 0,057
 [-0,023 ; 0,143] ; Δprécision@0,95 0,019
@@ -390,7 +399,65 @@ Rappel par taille de défaut au seuil « rappel ≥ 0,95 » :
 | [2500, 5000) | 11 | 1,000 | 0 |
 | [5000, 1000000) | 14 | 1,000 | 0 |
 
+
+
 Comparaison appariée avec `E5_grid_edge_check` (1000 rééchantillonnages) : ΔAP 0,015
 [-0,072 ; 0,099] ; Δprécision@0,95 -0,123
 [-0,439 ; 0,410] ; ΔFPR@0,95 0,540
 [-0,512 ; 0,795]. Un IC de Δ contenant 0 = non départageable avec 49 positifs.
+
+## X6_C_winner
+
+Recette : étapes C, `pos_weight` = ratio (8,47),
+sampler `none`, pooling `avg`, batch 16, workers 2,
+biais initial de la tête -2,136 = log(n_pos/n_neg) = log(197/1668).
+Run `20260917_002044_X6_C_winner_18eed599c81b` — commit `5b62df4beea504a7c1a868671f51613a38c8ca1e`, config `18eed599c81b`, torch 2.14.0+cpu,
+durée totale 113,0 min, `test_used = false`.
+
+| étape | entraînable | LR | époques | meilleure | AP val (best) | arrêt anticipé | durée (s) | features gelées (s) |
+|---|---|---|---|---|---|---|---|---|
+| C | 10493953 | {"layer3": 5e-05, "layer4": 0.0001, "head": 0.0005} | 8 | 5 | 0,941 | True | 6674,046 | cache |
+
+Évolution par époque :
+
+| stage | epoch | train_loss | val_loss | val_average_precision | val_precision_r095 | val_fpr_r095 | mean_val_prob | seconds |
+|---|---|---|---|---|---|---|---|---|
+| C | 1 | 0,4774 | 0,5709 | 0,8610 | 0,1190 | 0,8345 | 0,1841 | 845,5521 |
+| C | 2 | 0,6016 | 0,5277 | 0,9259 | 0,4196 | 0,1559 | 0,1386 | 838,2985 |
+| C | 3 | 0,3809 | 0,3892 | 0,9287 | 0,1709 | 0,5468 | 0,1354 | 838,4013 |
+| C | 4 | 0,3105 | 0,6179 | 0,9220 | 0,2009 | 0,4484 | 0,1003 | 817,6810 |
+| C | 5 | 0,3188 | 0,6124 | 0,9408 | 0,5732 | 0,0839 | 0,1012 | 829,2909 |
+| C | 6 | 0,2343 | 0,7083 | 0,9061 | 0,1865 | 0,4916 | 0,0953 | 828,1147 |
+| C | 7 | 0,2118 | 0,5403 | 0,9370 | 0,6714 | 0,0552 | 0,1060 | 851,3190 |
+| C | 8 | 0,1254 | 0,6159 | 0,9349 | 0,6912 | 0,0504 | 0,1005 | 562,2683 |
+
+**Métriques finales (validation)** : AP 0,941 [0,891 ; 0,979],
+ROC-AUC 0,987 [0,974 ; 0,997], perte val 0,6124,
+probabilité moyenne prédite 0,101 (prévalence 0,105).
+
+| rappel cible | seuil (prob.) | rappel obtenu | précision | FPR | TP | FP | FN | TN |
+|---|---|---|---|---|---|---|---|---|
+| 0,900 | 0,029 | 0,918 | 0,763 | 0,034 | 45 | 14 | 4 | 403 |
+| 0,950 | 0,020 | 0,959 | 0,573 | 0,084 | 47 | 35 | 2 | 382 |
+| 0,980 | 0,017 | 1,000 | 0,348 | 0,221 | 49 | 92 | 0 | 325 |
+| 0,990 | 0,017 | 1,000 | 0,348 | 0,221 | 49 | 92 | 0 | 325 |
+
+Au seuil 0,5 (rapporté, non retenu) : précision 1,000, rappel 0,796, F1 0,886,
+TP 39 / FP 0 / FN 10 / TN 417.
+
+Rappel par taille de défaut au seuil « rappel ≥ 0,95 » :
+
+| area_bin | n_positives | recall | missed |
+|---|---|---|---|
+| [0, 250) | 5 | 0,800 | 1 |
+| [250, 1000) | 10 | 0,900 | 1 |
+| [1000, 2500) | 9 | 1,000 | 0 |
+| [2500, 5000) | 11 | 1,000 | 0 |
+| [5000, 1000000) | 14 | 1,000 | 0 |
+
+Comparaison appariée avec le run de départ `X4_B_pw_ratio` : ΔAP 0,022 [-0,016 ; 0,067] ; Δprécision@0,95 0,322 [-0,169 ; 0,571] ; ΔFPR@0,95 -0,252 [-0,364 ; 0,044] — un IC contenant 0 n'est pas départageable avec 49 positifs.
+
+Comparaison appariée avec `E5_grid_edge_check` (1000 rééchantillonnages) : ΔAP 0,079
+[0,011 ; 0,153] ; Δprécision@0,95 0,340
+[0,022 ; 0,659] ; ΔFPR@0,95 -0,288
+[-0,621 ; -0,005]. Un IC de Δ contenant 0 = non départageable avec 49 positifs.

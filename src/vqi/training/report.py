@@ -155,6 +155,22 @@ def _tradeoff(r: dict[str, Any]) -> pd.DataFrame:
     )
 
 
+def _winner_paragraph(w: dict[str, Any] | None, n_val_pos: int) -> str:
+    if w is None:
+        return ""
+    d_ap, d_p, d_f = (
+        w["delta_average_precision"],
+        w["delta_precision_at_recall_0.95"],
+        w["delta_fpr_at_recall_0.95"],
+    )
+    return (
+        f"Comparaison appariée avec le run de départ `{w['reference']}` : ΔAP {_fmt(d_ap['point'])} "
+        f"[{_fmt(d_ap['low'])} ; {_fmt(d_ap['high'])}] ; Δprécision@0,95 {_fmt(d_p['point'])} "
+        f"[{_fmt(d_p['low'])} ; {_fmt(d_p['high'])}] ; ΔFPR@0,95 {_fmt(d_f['point'])} "
+        f"[{_fmt(d_f['low'])} ; {_fmt(d_f['high'])}] — un IC contenant 0 n'est pas départageable avec {n_val_pos} positifs."
+    )
+
+
 def _comparison_table(cfg: Config, results: dict[str, dict[str, Any]]) -> pd.DataFrame:
     ref_id, _, ref = phase2_reference(cfg)
     by_t = {round(t["recall_target"], 2): t for t in ref["metrics"]["at_recall_targets"]}
@@ -192,6 +208,30 @@ def _comparison_table(cfg: Config, results: dict[str, dict[str, Any]]) -> pd.Dat
             }
         )
     return pd.DataFrame(rows)
+
+
+def winner_comparison(cfg: Config, r: dict[str, Any]) -> dict[str, Any] | None:
+    """Paired bootstrap between an experiment and the run it started from (same val images)."""
+    winner = r["spec"].get("winner")
+    if not winner:
+        return None
+    from vqi.evaluation.compare import align_scores, paired_bootstrap
+
+    base = report_dir(cfg) / "experiments"
+    a = pd.read_csv(base / f"{winner}_val_scores.csv", dtype={"image_id": str})
+    b = pd.read_csv(base / f"{r['spec']['id']}_val_scores.csv", dtype={"image_id": str})
+    ids, sa, sb = align_scores(a["image_id"], a["score"], b["image_id"], b["score"])
+    y = a.set_index("image_id").loc[list(ids), "label"].to_numpy().astype(int)
+    out = paired_bootstrap(
+        y,
+        sa,
+        sb,
+        cfg.phase3.paired_bootstrap.n_resamples,
+        cfg.phase3.paired_bootstrap.confidence_level,
+        cfg.reproducibility.seed,
+    )
+    out["reference"] = winner
+    return out
 
 
 def build_report(cfg: Config) -> Path:
@@ -290,6 +330,8 @@ TP {d05["tp"]} / FP {d05["fp"]} / FN {d05["fn"]} / TN {d05["tn"]}.
 Rappel par taille de défaut au seuil « rappel ≥ 0,95 » :
 
 {_md_table(area)}
+
+{_winner_paragraph(winner_comparison(cfg, r), n_val_pos)}
 
 Comparaison appariée avec `{cmp_["reference"]}` ({cmp_["n_effective"]} rééchantillonnages) : ΔAP {_fmt(cmp_["delta_average_precision"]["point"])}
 [{_fmt(cmp_["delta_average_precision"]["low"])} ; {_fmt(cmp_["delta_average_precision"]["high"])}] ; Δprécision@0,95 {_fmt(cmp_["delta_precision_at_recall_0.95"]["point"])}
