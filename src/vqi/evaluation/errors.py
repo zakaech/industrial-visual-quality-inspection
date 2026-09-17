@@ -110,7 +110,10 @@ def error_analysis(cfg: Config, project_root: Path) -> dict[str, Any]:
     selection = {
         "FN": groups["FN"].sort_values("score", ascending=False).head(ea.n_fn_examples),
         "FP": groups["FP"].sort_values("score", ascending=False).head(ea.n_fp_examples),
-        "TP": groups["TP"].sort_values("score").head(ea.n_tp_examples),  # the least confident TPs
+        "TP_confident": groups["TP"]
+        .sort_values(["score", "defect_area_px"], ascending=[False, False])
+        .head(ea.n_tp_examples),
+        "TP_borderline": groups["TP"].sort_values("score").head(ea.n_tp_examples),
         "TN": groups["TN"].sort_values("score", ascending=False).head(ea.n_tn_examples),
     }
     panels: dict[str, str | None] = {}
@@ -133,11 +136,15 @@ def error_analysis(cfg: Config, project_root: Path) -> dict[str, Any]:
         titles = {
             "FN": "Faux négatifs (test) — défauts manqués au seuil gelé",
             "FP": "Faux positifs (test) — scores les plus élevés",
-            "TP": "Vrais positifs (test) — les moins confiants",
+            "TP_confident": "Vrais positifs (test) — les plus confiants",
+            "TP_borderline": "Vrais positifs (test) — les plus proches du seuil",
             "TN": "Vrais négatifs (test) — scores les plus élevés sous le seuil",
         }
         p = _panel(
-            items, fig_dir / f"test_{k.lower()}_panel.png", titles[k], with_zoom=k in ("FN", "TP")
+            items,
+            fig_dir / f"test_{k.lower()}_panel.png",
+            titles[k],
+            with_zoom=k.startswith(("FN", "TP")),
         )
         panels[k] = p.as_posix() if p else None
 
@@ -209,7 +216,7 @@ def error_analysis(cfg: Config, project_root: Path) -> dict[str, Any]:
 
     cam_df = pd.DataFrame(cam_rows)
     cam_summary = {}
-    for k in ("TP", "FN"):
+    for k in ("TP_confident", "TP_borderline", "FN"):
         sub = (
             cam_df[(cam_df["outcome"] == k) & cam_df["cam_mass_in_mask"].notna()]
             if len(cam_df)

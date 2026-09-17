@@ -1,9 +1,8 @@
 # Phase 3 — Deep learning : ResNet-18 par transfert, comparé à la baseline classique
 
-**État : implémentation livrée le 16/09/2026 ; dry-run X0 exécuté ; entraînements X1–X6 en attente de
-validation.** Les mesures du dry-run sont dans [`reports/phase3/dry_run.md`](../reports/phase3/dry_run.md)
-(générées, jamais saisies). Les résultats d'entraînement seront dans `reports/phase3/experiments/` et
-`reports/phase3/phase3_report.md` — tant qu'ils n'existent pas, ce document dit `TBD`.
+**État : livrée le 17/09/2026 — X1 à X6 exécutés ; X7 (ablation du pooling) non lancé (non justifié par X6,
+voir Phase 4).** Le rapport chiffré est dans [`reports/phase3/phase3_report.md`](../reports/phase3/phase3_report.md) ;
+le dry-run dans [`reports/phase3/dry_run.md`](../reports/phase3/dry_run.md). Tous les chiffres ci-dessous en sont extraits.
 
 ## 1. La question de la phase
 
@@ -85,13 +84,30 @@ runs identiques (écart max des pertes et des poids), saturation photométrique 
 | X6_C_winner | C | hérité du gagnant | best.pt du gagnant de X2–X5 (critère §3) |
 | X7 (conditionnel) | C | hérité | ablation pooling, seulement si X6 et le dry-run le justifient |
 
-## 7. Résultats
+## 7. Résultats (validation, 466 images / 49 défectueuses — développement)
 
-`TBD` — remplis après exécution réelle de X1–X6 (validation uniquement).
+| Run | Recette | AP | IC 95 % | Préc. @ R ≥ 0,95 | FPR @ 0,95 | Meilleure époque | Durée |
+|---|---|---|---|---|---|---|---|
+| X1 | sonde linéaire (features ImageNet gelées) | 0,791 | [0,679 ; 0,878] | 0,142 | 0,679 | 15/20 | 7 min |
+| X2 | B, `pos_weight` 1 | 0,906 | [0,828 ; 0,970] | 0,187 | 0,489 | 7/8 | 95 min |
+| X3 | B, `pos_weight` 2,91 | 0,904 | [0,828 ; 0,966] | 0,214 | 0,415 | 3/6 | 57 min |
+| X4 | B, `pos_weight` 8,47 | 0,919 | [0,848 ; 0,976] | **0,251** | 0,336 | 7/8 | 59 min |
+| X5 | B, sampler équilibré | 0,877 | [0,787 ; 0,953] | 0,110 | 0,911 | 4/7 | 52 min |
+| X6 | C depuis X4 | **0,941** | [0,891 ; 0,979] | **0,573** | **0,084** | 5/8 | 113 min |
+| réf. E5 SVM | Phase 2 | 0,862 | [0,770 ; 0,935] | 0,233 | 0,372 | — | — |
+
+Gagnant de la matrice B selon le critère préenregistré (précision @ rappel ≥ 0,95, puis AP) : X4. Bootstrap
+apparié vs la SVM : tous les IC de X1–X5 contiennent 0 ; X6 est la seule configuration dont les IC appariés
+excluent 0 sur la validation (ΔAP +0,079 [+0,011 ; +0,153], Δprécision@0,95 +0,340 [+0,022 ; +0,659]) — chiffres
+de développement, le test unique de la Phase 4 les remet en perspective (X6 et X4 y sont indissociables).
+
+Incident méthodologique documenté : la première tentative de X2 a été interrompue avant tout résultat parce que la
+politique BatchNorm `frozen_eval` détruisait la tête de la sonde à la transition A → B (perte val 0,20 → 15,3) ;
+correctif `all_eval` + contrôle de transition (commit `36dcdc9`), voir §3.
 
 ## 8. Tests
 
-77 tests (`pytest`) dont, pour cette phase : contrat du dataset (forme `(3, 640, 224)`, float32, refus du
+Tests (`pytest`) dont, pour cette phase : contrat du dataset (forme `(3, 640, 224)`, float32, refus du
 test, val déterministe, cache == live, augmentation train seule et keyée par époque, ordre du loader
 reproductible) ; augmentations (flips = permutations involutives, défaut intégralement conservé sous 50 tirages,
 photométrie bornée) ; modèle (biais = log(n_pos/n_neg), sigmoïde initiale = prévalence, gel par groupe, BN

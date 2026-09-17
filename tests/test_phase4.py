@@ -219,6 +219,12 @@ def test_phase4_chain_on_synthetic_data(phase3_done):
     assert errors["test_used"] and sum(errors["counts"].values()) == 20
     assert "limits" in errors["gradcam"]
 
+    from vqi.evaluation.report_phase4 import build_report
+
+    report = build_report(cfg)
+    text = report.read_text(encoding="utf-8")
+    assert "évaluation unique" in text and "P2_B" in text and "E0 contraste seul" in text
+
 
 def _val_scores(cfg: Config):
     import pandas as pd

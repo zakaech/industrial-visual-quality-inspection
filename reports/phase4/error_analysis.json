@@ -1,0 +1,458 @@
+{
+  "counts": {
+    "FN": 5,
+    "FP": 91,
+    "TP": 105,
+    "TN": 803
+  },
+  "examples_shown": {
+    "FN": [
+      "20816",
+      "20969",
+      "20544",
+      "20281",
+      "20236"
+    ],
+    "FP": [
+      "20358",
+      "20719",
+      "20249",
+      "20151",
+      "20849",
+      "20722",
+      "20262",
+      "20579",
+      "20651",
+      "20661",
+      "20703",
+      "20614"
+    ],
+    "TP_confident": [
+      "20193",
+      "20884",
+      "20671",
+      "20502",
+      "20158",
+      "20403"
+    ],
+    "TP_borderline": [
+      "20141",
+      "20139",
+      "20640",
+      "20228",
+      "20564",
+      "20801"
+    ],
+    "TN": [
+      "20789",
+      "20874",
+      "20247",
+      "20859"
+    ]
+  },
+  "panels": {
+    "FN": "reports/phase4/figures/test_fn_panel.png",
+    "FP": "reports/phase4/figures/test_fp_panel.png",
+    "TP_confident": "reports/phase4/figures/test_tp_confident_panel.png",
+    "TP_borderline": "reports/phase4/figures/test_tp_borderline_panel.png",
+    "TN": "reports/phase4/figures/test_tn_panel.png"
+  },
+  "comparison": {
+    "FP_vs_TN_medians": {
+      "FP": {
+        "mean_luminance": 44.093,
+        "std_luminance": 9.12,
+        "channel_spread": 3.7648
+      },
+      "TN": {
+        "mean_luminance": 44.589,
+        "std_luminance": 8.969,
+        "channel_spread": 3.805
+      },
+      "n_FP": 91,
+      "n_TN": 803
+    },
+    "FN_vs_TP_medians": {
+      "FN": {
+        "defect_area_px": 367.0,
+        "defect_bbox_w": 29.0,
+        "defect_bbox_h": 32.0,
+        "n_defect_components": 1.0,
+        "std_luminance": 8.976,
+        "score": 0.0160076972097158
+      },
+      "TP": {
+        "defect_area_px": 2535.0,
+        "defect_bbox_w": 69.0,
+        "defect_bbox_h": 70.0,
+        "n_defect_components": 1.0,
+        "std_luminance": 9.771,
+        "score": 1.0
+      },
+      "n_FN": 5,
+      "n_TP": 105
+    },
+    "FP_score_quantiles": {
+      "0.5": 0.0241119619458913,
+      "0.9": 0.0936055555939674,
+      "1.0": 0.840609073638916
+    },
+    "FP_share_above_0.5": 0.02197802197802198
+  },
+  "gradcam": {
+    "target_layer": "layer4",
+    "per_image": [
+      {
+        "outcome": "FN",
+        "image_id": "20816",
+        "probability": 0.018467705696821213,
+        "cam_peak_row_col": [
+          624,
+          0
+        ],
+        "cam_mass_in_mask": 0.07037286460399628,
+        "mask_area_share": 0.0012625558035714286,
+        "peak_in_mask": false,
+        "concentration_ratio": 55.73841916922047
+      },
+      {
+        "outcome": "FN",
+        "image_id": "20969",
+        "probability": 0.01633382961153984,
+        "cam_peak_row_col": [
+          431,
+          144
+        ],
+        "cam_mass_in_mask": 0.16852642595767975,
+        "mask_area_share": 0.022998046875,
+        "peak_in_mask": false,
+        "concentration_ratio": 7.327858181769175
+      },
+      {
+        "outcome": "FN",
+        "image_id": "20544",
+        "probability": 0.016007697209715843,
+        "cam_peak_row_col": [
+          80,
+          143
+        ],
+        "cam_mass_in_mask": 0.053523845970630646,
+        "mask_area_share": 0.0012765066964285714,
+        "peak_in_mask": false,
+        "concentration_ratio": 41.929937477320266
+      },
+      {
+        "outcome": "FN",
+        "image_id": "20281",
+        "probability": 0.015051928348839283,
+        "cam_peak_row_col": [
+          0,
+          0
+        ],
+        "cam_mass_in_mask": NaN,
+        "mask_area_share": 0.014878627232142857,
+        "peak_in_mask": false,
+        "concentration_ratio": NaN
+      },
+      {
+        "outcome": "FN",
+        "image_id": "20236",
+        "probability": 0.014811888337135315,
+        "cam_peak_row_col": [
+          496,
+          143
+        ],
+        "cam_mass_in_mask": 0.0,
+        "mask_area_share": 0.0025599888392857143,
+        "peak_in_mask": false,
+        "concentration_ratio": 0.0
+      },
+      {
+        "outcome": "FP",
+        "image_id": "20358",
+        "probability": 0.840609073638916,
+        "cam_peak_row_col": [
+          591,
+          80
+        ]
+      },
+      {
+        "outcome": "FP",
+        "image_id": "20719",
+        "probability": 0.785124659538269,
+        "cam_peak_row_col": [
+          272,
+          176
+        ]
+      },
+      {
+        "outcome": "FP",
+        "image_id": "20249",
+        "probability": 0.2510659694671631,
+        "cam_peak_row_col": [
+          48,
+          208
+        ]
+      },
+      {
+        "outcome": "FP",
+        "image_id": "20151",
+        "probability": 0.2073272317647934,
+        "cam_peak_row_col": [
+          272,
+          112
+        ]
+      },
+      {
+        "outcome": "FP",
+        "image_id": "20849",
+        "probability": 0.14642514288425446,
+        "cam_peak_row_col": [
+          592,
+          0
+        ]
+      },
+      {
+        "outcome": "FP",
+        "image_id": "20722",
+        "probability": 0.1438979208469391,
+        "cam_peak_row_col": [
+          144,
+          80
+        ]
+      },
+      {
+        "outcome": "TP_confident",
+        "image_id": "20193",
+        "probability": 1.0,
+        "cam_peak_row_col": [
+          175,
+          176
+        ],
+        "cam_mass_in_mask": 0.9987086653709412,
+        "mask_area_share": 0.29536830357142857,
+        "peak_in_mask": true,
+        "concentration_ratio": 3.3812316802280873
+      },
+      {
+        "outcome": "TP_confident",
+        "image_id": "20884",
+        "probability": 1.0,
+        "cam_peak_row_col": [
+          143,
+          176
+        ],
+        "cam_mass_in_mask": 0.9997082948684692,
+        "mask_area_share": 0.20931222098214286,
+        "peak_in_mask": true,
+        "concentration_ratio": 4.77615826814889
+      },
+      {
+        "outcome": "TP_confident",
+        "image_id": "20671",
+        "probability": 1.0,
+        "cam_peak_row_col": [
+          272,
+          79
+        ],
+        "cam_mass_in_mask": 0.5815864205360413,
+        "mask_area_share": 0.12931082589285714,
+        "peak_in_mask": true,
+        "concentration_ratio": 4.49758492005863
+      },
+      {
+        "outcome": "TP_confident",
+        "image_id": "20502",
+        "probability": 1.0,
+        "cam_peak_row_col": [
+          495,
+          80
+        ],
+        "cam_mass_in_mask": 0.6653881669044495,
+        "mask_area_share": 0.11049107142857142,
+        "peak_in_mask": true,
+        "concentration_ratio": 6.022098965115018
+      },
+      {
+        "outcome": "TP_confident",
+        "image_id": "20158",
+        "probability": 1.0,
+        "cam_peak_row_col": [
+          591,
+          48
+        ],
+        "cam_mass_in_mask": 0.6108189821243286,
+        "mask_area_share": 0.11622488839285715,
+        "peak_in_mask": true,
+        "concentration_ratio": 5.255492094427065
+      },
+      {
+        "outcome": "TP_confident",
+        "image_id": "20403",
+        "probability": 1.0,
+        "cam_peak_row_col": [
+          240,
+          80
+        ],
+        "cam_mass_in_mask": 0.5370054841041565,
+        "mask_area_share": 0.10051618303571429,
+        "peak_in_mask": true,
+        "concentration_ratio": 5.342477876555994
+      },
+      {
+        "outcome": "TP_borderline",
+        "image_id": "20141",
+        "probability": 0.018942292779684067,
+        "cam_peak_row_col": [
+          560,
+          79
+        ],
+        "cam_mass_in_mask": 0.3016717731952667,
+        "mask_area_share": 0.02152622767857143,
+        "peak_in_mask": false,
+        "concentration_ratio": 14.01414951564272
+      },
+      {
+        "outcome": "TP_borderline",
+        "image_id": "20139",
+        "probability": 0.02079840563237667,
+        "cam_peak_row_col": [
+          176,
+          143
+        ],
+        "cam_mass_in_mask": 0.23931102454662323,
+        "mask_area_share": 0.0038992745535714286,
+        "peak_in_mask": true,
+        "concentration_ratio": 61.373217314854934
+      },
+      {
+        "outcome": "TP_borderline",
+        "image_id": "20640",
+        "probability": 0.0292733833193779,
+        "cam_peak_row_col": [
+          176,
+          176
+        ],
+        "cam_mass_in_mask": 0.15802691876888275,
+        "mask_area_share": 0.008189174107142858,
+        "peak_in_mask": false,
+        "concentration_ratio": 19.297052022748748
+      },
+      {
+        "outcome": "TP_borderline",
+        "image_id": "20228",
+        "probability": 0.031244631856679916,
+        "cam_peak_row_col": [
+          175,
+          175
+        ],
+        "cam_mass_in_mask": 0.014149650000035763,
+        "mask_area_share": 0.0006068638392857143,
+        "peak_in_mask": false,
+        "concentration_ratio": 23.316020965576172
+      },
+      {
+        "outcome": "TP_borderline",
+        "image_id": "20564",
+        "probability": 0.03147587552666664,
+        "cam_peak_row_col": [
+          239,
+          0
+        ],
+        "cam_mass_in_mask": 0.15712381899356842,
+        "mask_area_share": 0.004568917410714286,
+        "peak_in_mask": false,
+        "concentration_ratio": 34.389726245676286
+      },
+      {
+        "outcome": "TP_borderline",
+        "image_id": "20801",
+        "probability": 0.03231552615761757,
+        "cam_peak_row_col": [
+          79,
+          0
+        ],
+        "cam_mass_in_mask": 0.07496810704469681,
+        "mask_area_share": 0.002992466517857143,
+        "peak_in_mask": false,
+        "concentration_ratio": 25.052279314516863
+      },
+      {
+        "outcome": "TN",
+        "image_id": "20789",
+        "probability": 0.018742874264717102,
+        "cam_peak_row_col": [
+          239,
+          79
+        ]
+      },
+      {
+        "outcome": "TN",
+        "image_id": "20874",
+        "probability": 0.0187140554189682,
+        "cam_peak_row_col": [
+          144,
+          176
+        ]
+      },
+      {
+        "outcome": "TN",
+        "image_id": "20247",
+        "probability": 0.018708398565649986,
+        "cam_peak_row_col": [
+          0,
+          0
+        ]
+      },
+      {
+        "outcome": "TN",
+        "image_id": "20859",
+        "probability": 0.01868969388306141,
+        "cam_peak_row_col": [
+          0,
+          0
+        ]
+      }
+    ],
+    "summary": {
+      "TP_confident": {
+        "n": 6,
+        "median_cam_mass_in_mask": 0.638103574514389,
+        "median_concentration_ratio": 5.015825181287978,
+        "share_peak_in_mask": 1.0
+      },
+      "TP_borderline": {
+        "n": 6,
+        "median_cam_mass_in_mask": 0.15757536888122559,
+        "median_concentration_ratio": 24.18415014004652,
+        "share_peak_in_mask": 0.16666666666666666
+      },
+      "FN": {
+        "n": 4,
+        "median_cam_mass_in_mask": 0.06194835528731346,
+        "median_concentration_ratio": 24.62889782954472,
+        "share_peak_in_mask": 0.0
+      }
+    },
+    "panels": {
+      "FN": "reports/phase4/figures/test_gradcam_fn.png",
+      "FP": "reports/phase4/figures/test_gradcam_fp.png",
+      "TP_confident": "reports/phase4/figures/test_gradcam_tp_confident.png",
+      "TP_borderline": "reports/phase4/figures/test_gradcam_tp_borderline.png",
+      "TN": "reports/phase4/figures/test_gradcam_tn.png"
+    },
+    "limits": "résolution d'une cellule ≈ 32×32 px ; carte de sensibilité du logit, pas une segmentation ; dépend de la couche choisie ; ne dit rien de la calibration"
+  },
+  "test_used": true,
+  "provenance": {
+    "created_at": "2026-09-17T16:16:07+00:00",
+    "vqi_version": "0.1.0",
+    "git_commit": "7ade5da4def0a9bd349876b9eafddfb1dc9a1d09",
+    "git_dirty": true,
+    "config_hash": "f9397663b72a",
+    "config_files": [
+      "configs\\default.yaml"
+    ],
+    "seed": 42
+  }
+}
