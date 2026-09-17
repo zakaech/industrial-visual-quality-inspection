@@ -41,9 +41,9 @@ flowchart TB
     end
 
     subgraph S5["5 · Serving — src/vqi/inference · src/vqi/api"]
-        K --> R["export : TorchScript + config de prétraitement + seuil + version"]
+        K --> R["bundle gelé models/final : model.pt + preprocessor.json + threshold.json + model_card.json"]
         N --> R
-        R --> S["Predictor.load() au démarrage"]
+        R --> S["Predictor.from_bundle() au démarrage (une fois)"]
         T["POST /predict (octets de l'image)"] --> U["validation du content-type et de la taille"]
         U --> V["MÊME prétraitement (S2)"]
         V --> W["forward → sigmoïde → p"]
@@ -71,16 +71,20 @@ flowchart TB
 | 5 Serving | bundle exporté, `api.*` | JSON HTTP | `vqi.inference.predictor`, `vqi.api.app` | oui |
 | 6 Packaging | dépôt + bundle exporté | image Docker | `Dockerfile` | oui (dépendances épinglées) |
 
-## Contrat de l'API (v1)
+## Contrat de l'API (v1, tel que livré en Phase 5)
 
 | Endpoint | Requête | Réponse |
 |---|---|---|
 | `GET /health` | — | `{"status": "ok"}` |
-| `GET /model-info` | — | `{"model_version", "architecture", "input_size", "threshold", "threshold_policy", "trained_on"}` |
-| `POST /predict` | `multipart/form-data`, champ `file` (png/jpeg/bmp, ≤ `api.max_upload_mb`) | `{"defect_probability": float, "decision": "ACCEPT" \| "REJECT", "threshold": float, "model_version": str, "latency_ms": float}` |
+| `GET /model-info` | — | `{"model_version", "model", "experiment_id", "architecture", "model_sha256", "preprocessor", "threshold": {value, policy, target_recall, margin, selected_on, calibration, frozen_at}, "decision_labels", "project_version", "bundle_frozen_at", "validation_summary", "final_test_summary"}` |
+| `POST /predict` | `multipart/form-data`, champ `file` (png/jpeg/bmp, ≤ `api.max_upload_mb`) | `{"image_id": str, "probability": float, "decision": "ACCEPT" \| "REJECT", "threshold": float, "model_version": str, "latency_ms": float, "request_id": str}` |
 
-Cas d'erreur : content-type non supporté → 415 ; fichier trop volumineux → 413 ; image non décodable → 422 ; modèle
-non chargé → 503.
+Cas d'erreur : fichier vide → 400 ; fichier trop volumineux → 413 ; content-type non supporté → 415 ; champ absent
+ou image non décodable → 422 ; modèle non chargé → 503 ; erreur interne → 500 sans traceback. Écarts par rapport
+au contrat esquissé en Phase 0 : le champ `defect_probability` s'appelle `probability` (score brut, non calibré),
+`image_id` et `request_id` ont été ajoutés pour la traçabilité, `/model-info` expose l'intégralité des
+métadonnées du bundle gelé (`models/final/`) plutôt qu'un résumé, et le bundle est un `state_dict` PyTorch
+(`model.pt`) et non un export TorchScript (décision de Phase 4). Détails : `docs/05_phase5_api.md`.
 
 ## Où vit chaque garde-fou anti-fuite
 

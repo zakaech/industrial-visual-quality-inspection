@@ -13,7 +13,8 @@ chiffres ci-dessous proviennent d'exécutions journalisées (`reports/*/…json`
 | 2 | Prétraitement OpenCV, comparaison des transformations (CNR), baseline SVM | [docs/02_phase2_preprocessing_baseline.md](docs/02_phase2_preprocessing_baseline.md) · [rapport Phase 2](reports/phase2/phase2_report.md) |
 | 3 | Transfert ResNet-18 par étapes, matrice de déséquilibre, comparaison appariée | [docs/03_phase3_training.md](docs/03_phase3_training.md) · [rapport Phase 3](reports/phase3/phase3_report.md) |
 | 4 | Vérification, calibration, seuil gelé, évaluation unique du test, erreurs, Grad-CAM | [docs/04_phase4_final_evaluation.md](docs/04_phase4_final_evaluation.md) · [rapport Phase 4](reports/phase4/phase4_report.md) |
-| 5 | API FastAPI + Docker | à venir |
+| 5 | API d'inférence FastAPI (`/health`, `/model-info`, `/predict`) sur le bundle gelé | [docs/05_phase5_api.md](docs/05_phase5_api.md) |
+| 6 | Docker, intégration continue | à venir |
 
 ## Problème
 
@@ -72,11 +73,11 @@ Références gelées scorées dans la même passe de test : contraste seul AP 0,
 │   ├── models/         # ResNet-18 + tête, gel par groupe, politique BatchNorm
 │   ├── training/       # étapes A/B/C, pertes, sampler, dry-run, expériences, rapport
 │   ├── inference/      # Predictor : bundle gelé → prétraiter → scorer → décider (test et API)
-│   └── api/            # (Phase 5) application FastAPI
+│   └── api/            # application FastAPI : app (chargement unique), routes, schémas
 ├── tests/              # dataset synthétique, sans données réelles
 ├── models/final/       # bundle gelé : threshold.json, preprocessor.json, model_card.json (model.pt ignoré par git)
 ├── runs/               # sorties d'entraînement, ignorées par git
-└── Dockerfile          # (Phase 5)
+└── logs/               # journaux d'exécution, ignorés par git
 ```
 
 ## Stack
@@ -103,8 +104,32 @@ python scripts/verify_checkpoint.py       # Phase 4 : reproduit les scores val d
 python scripts/select_threshold.py --freeze   # analyse val, calibration, seuil, bundle gelé → models/final/
 python scripts/evaluate_test.py           # évaluation UNIQUE du test officiel (+ erreurs, Grad-CAM)
 python scripts/build_phase4_report.py
+python scripts/serve_api.py               # Phase 5 : API d'inférence sur http://127.0.0.1:8000
 pytest
 ```
+
+## API d'inférence
+
+Le service FastAPI (`src/vqi/api/`) charge **une seule fois** au démarrage le bundle gelé `models/final/` via
+`Predictor.from_bundle()` — le même objet que celui de l'évaluation finale — et expose `GET /health`,
+`GET /model-info` et `POST /predict`. Documentation Swagger sur `/docs`.
+
+```bash
+python scripts/serve_api.py                       # ou : uvicorn vqi.api.app:app --host 0.0.0.0 --port 8000
+curl http://127.0.0.1:8000/health                 # {"status":"ok"}
+curl -X POST http://127.0.0.1:8000/predict -F "file=@data/raw/kolektor_sdd2/train/10004.png;type=image/png"
+```
+
+```json
+{"image_id": "10004.png", "probability": 0.016112767159938812, "decision": "ACCEPT",
+ "threshold": 0.018752005540198832, "model_version": "X6_C_winner-4233a9cd8053",
+ "latency_ms": 328.73, "request_id": "c5fceb66-e85d-4759-9ebd-617572627b83"}
+```
+
+`decision = REJECT` ssi `probability >= threshold` (score brut du modèle, non calibré). Entrées invalides :
+400 (vide), 413 (> `api.max_upload_mb`), 415 (type non image), 422 (champ absent ou image indécodable).
+Latence mesurée côté serveur sur CPU : médiane 256 ms. Détails, formats, journaux et limites :
+[docs/05_phase5_api.md](docs/05_phase5_api.md).
 
 ## Reproductibilité
 
