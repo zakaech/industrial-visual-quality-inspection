@@ -7,20 +7,18 @@ test image) and is skipped when the bundle or the data are absent.
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import cv2
 import numpy as np
 import pytest
-import torch
 from fastapi.testclient import TestClient
 
 from vqi.api import create_app
 from vqi.config import Config, load_config
 from vqi.inference.predictor import Predictor
-from vqi.models.factory import build_model
-from vqi.preprocessing import Preprocessor
+from vqi.inference.synthetic_bundle import make_synthetic_bundle
+from vqi.models import factory
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 REAL_BUNDLE = REPO_ROOT / "models" / "final"
@@ -34,52 +32,7 @@ def cfg() -> Config:
 @pytest.fixture(scope="module")
 def synthetic_bundle(cfg: Config, tmp_path_factory) -> Path:
     """A bundle with untrained weights: exercises the whole API path without real data."""
-    d = tmp_path_factory.mktemp("bundle")
-    torch.manual_seed(0)
-    model = build_model(cfg, 197, 1668)
-    torch.nn.init.normal_(model.head[1].weight, std=0.05)
-    pre = Preprocessor.from_config(cfg)
-    torch.save(
-        {"model_state": model.state_dict(), "pooling": model.pooling, "stage": "test"},
-        d / "model.pt",
-    )
-    (d / "preprocessor.json").write_text(json.dumps(pre.describe()), encoding="utf-8")
-    (d / "threshold.json").write_text(
-        json.dumps(
-            {
-                "frozen": True,
-                "threshold": 0.5,
-                "policy": "min_recall",
-                "target_recall": 0.95,
-                "margin": "midpoint_logit",
-                "selected_on": "synthetic",
-                "calibration_decision": "raw",
-                "frozen_at": "2026-01-01T00:00:00+00:00",
-            }
-        ),
-        encoding="utf-8",
-    )
-    (d / "model_card.json").write_text(
-        json.dumps(
-            {
-                "model": "synthetic",
-                "experiment_id": "SYN",
-                "frozen_at": "2026-01-01T00:00:00+00:00",
-                "architecture": {
-                    "architecture": "resnet18",
-                    "pooling": "avg",
-                    "n_params": 11177025,
-                },
-                "validation_metrics": {
-                    "average_precision": 0.5,
-                    "roc_auc": 0.5,
-                    "at_recall_targets": [],
-                },
-            }
-        ),
-        encoding="utf-8",
-    )
-    return d
+    return make_synthetic_bundle(cfg, tmp_path_factory.mktemp("bundle"))
 
 
 @pytest.fixture(scope="module")
@@ -104,6 +57,14 @@ def test_health(client: TestClient):
     r = client.get("/health")
     assert r.status_code == 200 and r.json() == {"status": "ok"}
     assert "x-request-id" in {k.lower() for k in r.headers}
+
+
+def test_health_is_503_without_a_loaded_model(cfg: Config, synthetic_bundle: Path):
+    """'ok' must mean 'can score', not just 'process alive' (Docker HEALTHCHECK semantics)."""
+    with TestClient(create_app(cfg, synthetic_bundle)) as c:
+        c.app.state.predictor = None
+        assert c.get("/health").status_code == 503
+        assert c.get("/model-info").status_code == 503
 
 
 def test_model_info(client: TestClient):
@@ -221,6 +182,34 @@ def test_model_is_loaded_once(client: TestClient):
     for i in range(3):
         client.post("/predict", files={"file": (f"p{i}.png", _png_bytes(seed=i), "image/png")})
     assert id(app.state.predictor) == before and app.state.load_count == 1
+
+
+# ------------------------------------------------------------------------------ offline load
+
+
+def test_bundle_loading_never_requests_pretrained_weights(
+    cfg: Config, synthetic_bundle: Path, monkeypatch
+):
+    """The container has no torch hub cache and no Internet: the skeleton must be built with
+    weights=None, every parameter then comes from model.pt (strict load)."""
+    seen: list = []
+    real = factory.models.resnet18
+
+    def spy(*args, weights=None, **kwargs):
+        seen.append(weights)
+        return real(*args, weights=None, **kwargs)
+
+    monkeypatch.setattr(factory.models, "resnet18", spy)
+    Predictor.from_bundle(cfg, synthetic_bundle)
+    assert seen == [None]
+
+
+def test_synthetic_bundle_is_clearly_synthetic(synthetic_bundle: Path):
+    import json
+
+    card = json.loads((synthetic_bundle / "model_card.json").read_text(encoding="utf-8"))
+    assert card["experiment_id"] == "SYN" and "synthetic" in card["model"]
+    assert (synthetic_bundle / "sample.png").exists()
 
 
 # ------------------------------------------------------------------------------ contract

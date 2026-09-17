@@ -69,7 +69,7 @@ flowchart TB
 | 3 Entraînement | csv de split, `model.*`, `training.*` | `runs/<id>/model.pt`, `metrics.jsonl`, `config.yaml` figée | `vqi.models.factory`, `vqi.training.loop` | au mieux sur CPU (voir risque R9) |
 | 4 Évaluation | checkpoint, csv de split, `evaluation.*` | `threshold.json`, `report/` | `vqi.evaluation.*` | oui (bootstrap seedé) |
 | 5 Serving | bundle exporté, `api.*` | JSON HTTP | `vqi.inference.predictor`, `vqi.api.app` | oui |
-| 6 Packaging | dépôt + bundle exporté | image Docker | `Dockerfile` | oui (dépendances épinglées) |
+| 6 Packaging | dépôt + bundle gelé `models/final/` | image Docker `vqi-api` (CPU, non-root) + CI | `Dockerfile`, `compose.yaml`, `.github/workflows/ci.yml` | oui (Python 3.11.9, `requirements-api.txt` épinglé, SHA-256 du modèle vérifiable via `/model-info`) — livré en Phase 6 |
 
 ## Contrat de l'API (v1, tel que livré en Phase 5)
 

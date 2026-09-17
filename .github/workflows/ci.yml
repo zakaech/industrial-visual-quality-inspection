@@ -1,0 +1,69 @@
+# Minimal CI: lint, tests, Docker build + smoke test. No GPU, no dataset, no real model, no
+# secrets. The only network dependencies are PyPI / the PyTorch CPU index (pinned versions) and,
+# for the test job, the public ImageNet ResNet-18 backbone that torchvision downloads (hash-checked
+# by torchvision, cached between runs). The official test split is never touched: it is not in
+# the repository and the only test that reads real data is skipped when the data are absent.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install ruff (pinned as in requirements.txt)
+        run: pip install ruff==0.16.7
+      - run: ruff check .
+      - run: ruff format --check .
+
+  tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Cache the public ImageNet backbone used by the training tests
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/torch/hub/checkpoints
+          key: torchvision-resnet18-f37072fd
+      - name: Install pinned dependencies (CPU-only torch) and the package
+        run: |
+          pip install -r requirements.txt
+          pip install --no-deps -e .
+      - name: Run the test suite (synthetic data and synthetic bundle only)
+        run: pytest -p no:cacheprovider -rs
+
+  docker:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the image (app-only — model.pt is git-ignored, so REQUIRE_MODEL=0)
+        run: docker build --build-arg REQUIRE_MODEL=0 -t vqi-api:ci .
+      - name: Image size
+        run: docker image ls vqi-api:ci
+      - name: Smoke test (synthetic bundle generated inside the image, mounted read-only)
+        run: bash scripts/docker_smoke_test.sh vqi-api:ci synthetic

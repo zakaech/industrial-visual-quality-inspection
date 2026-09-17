@@ -115,7 +115,7 @@ rapport et des figures.
 
 ```bash
 py -3.11 -m venv .venv && .venv\Scripts\activate
-pip install -r requirements.txt && pip install -e ".[dev]"
+pip install -r requirements.txt && pip install -e ".[train,dev]"
 python scripts/download_data.py
 python scripts/build_manifest.py
 python scripts/make_splits.py

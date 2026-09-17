@@ -1,0 +1,17 @@
+# One command to build and run the inference API:   docker compose up --build
+# Single service on purpose (no proxy, database, queue or monitoring stack in this V1).
+services:
+  api:
+    build:
+      context: .
+    image: vqi-api:local
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    # The frozen bundle is baked into the image (option A). To serve a bundle from the host
+    # instead (option B), uncomment the two blocks below — the same VQI_BUNDLE_DIR mechanism the
+    # CI smoke test uses with a synthetic bundle:
+    # environment:
+    #   VQI_BUNDLE_DIR: /bundle
+    # volumes:
+    #   - ./models/final:/bundle:ro

@@ -47,10 +47,14 @@ def _predictor(request: Request):
 @router.get(
     "/health",
     response_model=HealthResponse,
-    summary="Liveness probe",
-    description="Cheap check that the process answers; performs no inference.",
+    responses={503: ERROR_RESPONSES[503]},
+    summary="Liveness probe (used by the Docker HEALTHCHECK)",
+    description="Cheap check that the process answers AND the model is loaded; performs no "
+    "inference. uvicorn only serves once the lifespan has loaded the bundle, so 'ok' means the "
+    "service can score; 503 is returned if the predictor is missing.",
 )
-def health() -> HealthResponse:
+def health(request: Request) -> HealthResponse:
+    _predictor(request)  # 503 if the bundle is not loaded
     return HealthResponse(status="ok")
 
 

@@ -79,12 +79,20 @@ def prior_logit(n_pos: int, n_neg: int) -> float:
 
 
 def build_model(
-    cfg: Config, n_pos: int | None = None, n_neg: int | None = None, pooling: str | None = None
+    cfg: Config,
+    n_pos: int | None = None,
+    n_neg: int | None = None,
+    pooling: str | None = None,
+    pretrained: bool | None = None,
 ) -> DefectClassifier:
+    """Build the classifier. ``pretrained`` overrides ``cfg.model.pretrained``: loaders that
+    immediately overwrite every weight from a checkpoint pass ``False`` so that no ImageNet
+    download is ever attempted (the container has no torch hub cache)."""
     m = cfg.model
     if m.architecture != "resnet18":
         raise NotImplementedError(f"architecture {m.architecture} is not implemented in v1")
-    weights = getattr(models.ResNet18_Weights, m.weights) if m.pretrained else None
+    use_pretrained = m.pretrained if pretrained is None else pretrained
+    weights = getattr(models.ResNet18_Weights, m.weights) if use_pretrained else None
     backbone = models.resnet18(weights=weights)
     model = DefectClassifier(
         backbone, feat_dim=512, pooling=pooling or m.pooling, dropout=m.dropout

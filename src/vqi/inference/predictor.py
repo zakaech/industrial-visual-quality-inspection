@@ -62,7 +62,8 @@ class Predictor:
         pre = Preprocessor.from_config(cfg)
         if ckpt.get("preprocessor") != pre.describe():
             raise BundleError("checkpoint preprocessing differs from the current configuration")
-        model = build_model(cfg, 1, 1, pooling=ckpt.get("pooling"))
+        # skeleton only (pretrained=False): every weight comes from the checkpoint, strict
+        model = build_model(cfg, 1, 1, pooling=ckpt.get("pooling"), pretrained=False)
         model.load_state_dict(ckpt["model_state"], strict=True)
         labels = (cfg.api.decision_labels.positive, cfg.api.decision_labels.negative)
         meta = {k: v for k, v in ckpt.items() if k != "model_state"}
@@ -84,7 +85,8 @@ class Predictor:
             raise BundleError("threshold.json is not frozen")
         card = json.loads((d / "model_card.json").read_text(encoding="utf-8"))
         ckpt = torch.load(d / "model.pt", map_location=cfg.training.device, weights_only=False)
-        model = build_model(cfg, 1, 1, pooling=ckpt["pooling"])
+        # skeleton only (pretrained=False): every weight comes from model.pt, strict
+        model = build_model(cfg, 1, 1, pooling=ckpt["pooling"], pretrained=False)
         model.load_state_dict(ckpt["model_state"], strict=True)
         labels = (cfg.api.decision_labels.positive, cfg.api.decision_labels.negative)
         meta = {

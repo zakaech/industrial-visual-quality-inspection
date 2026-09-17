@@ -20,6 +20,11 @@ from vqi.provenance import provenance
 logger = get_logger(__name__)
 
 
+def _short(commit: str | None) -> str:
+    """7-char commit, or 'unknown' when provenance has none (no git available)."""
+    return commit[:7] if commit else "unknown"
+
+
 def _fmt(x: Any, nd: int = 3) -> str:
     if x is None or (isinstance(x, float) and np.isnan(x)):
         return "n/d"
@@ -305,7 +310,7 @@ puis évaluation finale unique sur le test officiel KolektorSDD2, analyse des er
 |---|---|
 | Architecture | ResNet-18 ImageNet (`{card["checkpoint_metadata"]["config_hash"]}`), pooling `{card["architecture"]["pooling"]}`, tête Dropout 0,2 + Linear(512→1) — {card["architecture"]["n_params"]:,} paramètres |
 | Recette | {card["training_recipe"]["stages"]} ; `pos_weight` {_fmt(card["training_recipe"]["pos_weight"], 3)} ; sampler {card["training_recipe"]["sampler"]} ; BN `{card["training_recipe"]["bn_policy"]}` ; AdamW wd 1e-4 ; LR C {json.dumps(card["training_recipe"]["lr_stage_C"])} ; batch {card["training_recipe"]["batch_size"]} ; seed {card["training_recipe"]["seed"]} |
-| Checkpoint | `{card["checkpoint_source"]}` — étape {card["checkpoint_metadata"]["stage"]}, époque {card["checkpoint_metadata"]["epoch"]}, AP val {_fmt(card["checkpoint_metadata"]["metric"], 4)} (critère préenregistré), commit d'entraînement `{card["checkpoint_metadata"]["git_commit"][:7]}` |
+| Checkpoint | `{card["checkpoint_source"]}` — étape {card["checkpoint_metadata"]["stage"]}, époque {card["checkpoint_metadata"]["epoch"]}, AP val {_fmt(card["checkpoint_metadata"]["metric"], 4)} (critère préenregistré), commit d'entraînement `{_short(card["checkpoint_metadata"]["git_commit"])}` |
 | Bundle | `{bundle.as_posix()}/` : `model.pt` (SHA-256 `{card["model_sha256"][:16]}…`, copie octet à octet du checkpoint), `preprocessor.json`, `threshold.json`, `model_card.json`, `final_test_metrics.json` |
 | Prétraitement | {json.dumps(card["preprocessor"])} |
 | Vérification | métadonnées = résultat X6 ; deux passes val identiques ; écart max vs scores enregistrés {ver["validation"]["max_abs_score_diff_vs_recorded"]:.1e} ; AP reproduite {_fmt(ver["validation"]["average_precision"][0], 4)} |
@@ -450,13 +455,13 @@ Test officiel (passe unique ; les trois références sont des modèles gelés sc
 - Calibration imparfaite dans la bande utile (scores bruts, `pos_weight` 8,5) ; les probabilités ne sont pas des probabilités métier.
 - Coût CPU élevé : ≈ {_fmt(test["timing"]["x6_preprocess_and_score_seconds"] / test["n"] * 1000, 0)} ms par image en inférence sur l'i7-8665U (prétraitement inclus), ≈ 1 h par époque d'entraînement en étape C.
 - Grad-CAM : évidence qualitative à résolution grossière, pas une localisation.
-- La provenance du run de test porte `git_dirty = {str(test["provenance"]["git_dirty"]).lower()}` : au lancement le working tree était propre au commit `{test["provenance"]["git_commit"][:7]}` ; le drapeau reflète les fichiers de sortie que le script lui-même écrit avant d'enregistrer sa provenance.
+- La provenance du run de test porte `git_dirty = {str(test["provenance"]["git_dirty"]).lower()}` : au lancement le working tree était propre au commit `{_short(test["provenance"]["git_commit"])}` ; le drapeau reflète les fichiers de sortie que le script lui-même écrit avant d'enregistrer sa provenance.
 
 ## 4.11 Reproductibilité
 
 | Élément | Valeur |
 |---|---|
-| Commit du gel / de l'évaluation | `{test["provenance"]["git_commit"][:7]}` |
+| Commit du gel / de l'évaluation | `{_short(test["provenance"]["git_commit"])}` |
 | Config au gel | `{card["provenance"]["config_hash"]}` ; config d'entraînement du checkpoint `{card["checkpoint_metadata"]["config_hash"]}` |
 | Seed | {card["training_recipe"]["seed"]} |
 | Checkpoint | `{card["checkpoint_source"]}` — SHA-256 `{card["model_sha256"]}` |

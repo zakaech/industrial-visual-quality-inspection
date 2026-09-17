@@ -11,21 +11,25 @@ requires-python = ">=3.11,<3.12"
 license = { text = "MIT" }
 authors = [{ name = "Zakaria" }]
 dependencies = [
-    # Exact versions are locked in requirements.txt (generated from a real install).
+    # Inference API runtime (what the Docker image installs, pinned in requirements-api.txt).
+    # Exact versions of everything are locked in requirements.txt (generated from a real install).
     "torch>=2.2",
     "torchvision>=0.17",
     "opencv-python-headless>=4.9",
-    "scikit-learn>=1.4",
     "numpy>=1.26",
-    "pandas>=2.2",
     "pyyaml>=6.0",
-    "matplotlib>=3.8",
     "fastapi>=0.110",
-    "uvicorn[standard]>=0.29",
+    "uvicorn>=0.29",
     "python-multipart>=0.0.9",
 ]
 
 [project.optional-dependencies]
+train = [
+    # data pipeline, baselines, training, evaluation and reports (not needed to serve the model)
+    "scikit-learn>=1.4",
+    "pandas>=2.2",
+    "matplotlib>=3.8",
+]
 dev = [
     "pytest>=8.0",
     "ruff>=0.4",

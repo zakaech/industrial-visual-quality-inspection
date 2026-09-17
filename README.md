@@ -14,7 +14,7 @@ chiffres ci-dessous proviennent d'exécutions journalisées (`reports/*/…json`
 | 3 | Transfert ResNet-18 par étapes, matrice de déséquilibre, comparaison appariée | [docs/03_phase3_training.md](docs/03_phase3_training.md) · [rapport Phase 3](reports/phase3/phase3_report.md) |
 | 4 | Vérification, calibration, seuil gelé, évaluation unique du test, erreurs, Grad-CAM | [docs/04_phase4_final_evaluation.md](docs/04_phase4_final_evaluation.md) · [rapport Phase 4](reports/phase4/phase4_report.md) |
 | 5 | API d'inférence FastAPI (`/health`, `/model-info`, `/predict`) sur le bundle gelé | [docs/05_phase5_api.md](docs/05_phase5_api.md) |
-| 6 | Docker, intégration continue | à venir |
+| 6 | Image Docker CPU non-root (bundle intégré), Compose, CI GitHub Actions (lint, tests, build + smoke test) | [docs/06_phase6_docker_ci.md](docs/06_phase6_docker_ci.md) |
 
 ## Problème
 
@@ -59,6 +59,7 @@ Références gelées scorées dans la même passe de test : contraste seul AP 0,
 
 ```
 .
+├── .github/workflows/  # CI : lint, tests, build Docker + smoke test
 ├── configs/            # configuration YAML (default.yaml + experiments/)
 ├── data/               # raw/ interim/ processed/ ignorés par git ; splits/ versionné
 ├── docs/               # cadrage, pipeline, une note par phase
@@ -77,7 +78,10 @@ Références gelées scorées dans la même passe de test : contraste seul AP 0,
 ├── tests/              # dataset synthétique, sans données réelles
 ├── models/final/       # bundle gelé : threshold.json, preprocessor.json, model_card.json (model.pt ignoré par git)
 ├── runs/               # sorties d'entraînement, ignorées par git
-└── logs/               # journaux d'exécution, ignorés par git
+├── logs/               # journaux d'exécution, ignorés par git
+├── Dockerfile          # image CPU du service (Python 3.11, non-root, HEALTHCHECK) + .dockerignore en liste blanche
+├── compose.yaml        # docker compose up --build
+└── requirements-api.txt # dépendances d'exécution de l'API (sous-ensemble épinglé de requirements.txt)
 ```
 
 ## Stack
@@ -89,7 +93,7 @@ Python 3.11 · PyTorch / torchvision · OpenCV · scikit-learn · NumPy / pandas
 
 ```bash
 py -3.11 -m venv .venv && .venv\Scripts\activate
-pip install -r requirements.txt && pip install -e ".[dev]"
+pip install -r requirements.txt && pip install -e ".[train,dev]"
 python scripts/download_data.py           # télécharge (853 Mo), vérifie le SHA-256, extrait
 python scripts/build_manifest.py          # manifeste + analyse des doublons
 python scripts/make_splits.py             # partition train/val/test → data/splits/v1.csv
@@ -130,6 +134,28 @@ curl -X POST http://127.0.0.1:8000/predict -F "file=@data/raw/kolektor_sdd2/trai
 400 (vide), 413 (> `api.max_upload_mb`), 415 (type non image), 422 (champ absent ou image indécodable).
 Latence mesurée côté serveur sur CPU : médiane 256 ms. Détails, formats, journaux et limites :
 [docs/05_phase5_api.md](docs/05_phase5_api.md).
+
+## Docker
+
+Image CPU (`python:3.11.9-slim-bookworm`, utilisateur non-root `app`) contenant le bundle gelé `models/final/`
+— le `model.pt` étant ignoré par git, il faut disposer du bundle localement (sinon `--build-arg REQUIRE_MODEL=0`
+et un bundle monté via `VQI_BUNDLE_DIR`).
+
+```bash
+docker build -t vqi-api .                        # ~7 min à froid, 1,86 Go (PyTorch CPU)
+docker run --rm -p 8000:8000 vqi-api             # ou : docker compose up --build
+curl http://127.0.0.1:8000/health                # {"status":"ok"}  (= processus vivant ET modèle chargé)
+# Swagger : http://127.0.0.1:8000/docs
+bash scripts/docker_smoke_test.sh vqi-api real   # /health, /model-info (SHA-256 + seuil = models/final/), HEALTHCHECK
+```
+
+## CI
+
+[.github/workflows/ci.yml](.github/workflows/ci.yml), à chaque push / pull request, sans GPU, sans données,
+sans secret : `lint` (`ruff check .`, `ruff format --check .`), `tests` (`pytest` sur données et bundle
+synthétiques ; le test lisant le bundle réel est sauté), `docker` (`docker build` de l'image applicative
+puis smoke test : bundle synthétique généré dans l'image, `/health`, `/model-info`, `/predict`, `HEALTHCHECK`).
+Aucune image n'est poussée vers un registre. Détails : [docs/06_phase6_docker_ci.md](docs/06_phase6_docker_ci.md).
 
 ## Reproductibilité
 
