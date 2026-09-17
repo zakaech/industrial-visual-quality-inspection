@@ -1,0 +1,50 @@
+{
+  "frozen": true,
+  "frozen_at": "2026-09-17T15:26:49+00:00",
+  "threshold": 0.018752005540198832,
+  "score": "raw sigmoid output of the model (no post-hoc calibration)",
+  "policy": "min_recall",
+  "target_recall": 0.95,
+  "margin": "midpoint_logit",
+  "threshold_min_recall": 0.0197415295988321,
+  "next_lower_positive_score": 0.0178111791610717,
+  "validation_at_threshold": {
+    "threshold": 0.018752005540198832,
+    "tp": 47,
+    "fp": 51,
+    "fn": 2,
+    "tn": 366,
+    "precision": 0.47959183673469385,
+    "recall": 0.9591836734693877,
+    "fpr": 0.1223021582733813,
+    "specificity": 0.8776978417266187,
+    "f1": 0.6394557823129252,
+    "f2": 0.7993197278911565,
+    "accuracy": 0.8862660944206009
+  },
+  "validation_bootstrap_at_threshold": {
+    "recall": {
+      "low": 0.8979591836734694,
+      "high": 1.0,
+      "n_effective": 1000
+    },
+    "precision": {
+      "low": 0.38202247191011235,
+      "high": 0.5757704160246534,
+      "n_effective": 1000
+    },
+    "fpr": {
+      "low": 0.09307737137148249,
+      "high": 0.153306270078277,
+      "n_effective": 1000
+    },
+    "average_precision": {
+      "low": 0.8909649075290742,
+      "high": 0.9788468978425813,
+      "n_effective": 1000
+    }
+  },
+  "selected_on": "val (466 images, 49 defective)",
+  "calibration_decision": "raw",
+  "test_used": false
+}

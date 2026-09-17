@@ -296,9 +296,39 @@ baseline:                              # Phase 2 : descripteurs classiques + sci
        kernel: linear, c_grid: [0.001, 0.01, 0.1, 1.0, 10.0]}
 
 inference:
-  export_format: torchscript           # torchscript | state_dict
-  bundle_dir: runs/best                # model.pt, threshold.json, preprocessing.json, version.json
-  batch_size: 1
+  export_format: state_dict            # state_dict (v1) | torchscript
+  bundle_dir: models/final             # model.pt (ignoré par git), model_card.json, preprocessor.json, threshold.json
+  batch_size: 16
+
+phase4:                                # finalisation : vérification, seuil sur validation, gel, évaluation UNIQUE du test
+  report_subdir: phase4
+  candidate:
+    experiment_id: X6_C_winner
+    checkpoint: runs/20260917_002044_X6_C_winner_18eed599c81b/stage_C_best.pt
+  verification:
+    score_tolerance: 1.0e-6            # écart max toléré entre l'inférence déterministe et les scores val du run
+  calibration:                         # diagnostics ajustés sur la VALIDATION uniquement (le test n'intervient jamais)
+    n_bins: 10
+    methods: [temperature, isotonic]
+    keep_raw_if_ece_below: 0.10        # règle : on garde les scores bruts sauf mauvaise calibration flagrante (ECE > 0,10)
+  threshold:
+    policy: min_recall                 # seuil le moins permissif atteignant le rappel cible sur la validation…
+    target_recall: 0.95
+    margin: midpoint_logit             # …puis abaissé au milieu (en logit) vers le positif suivant : marge contre la dérive des scores
+    report_recall_targets: [0.90, 0.95, 0.98, 0.99]
+    cost_ratios: [5.0, 10.0, 20.0]     # coût FN / coût FP, à titre d'information (le ratio réel est inconnu)
+  test:
+    allowed_splits: [test]             # utilisé UNIQUEMENT par scripts/evaluate_test.py, après gel
+    single_evaluation: true            # le script refuse de tourner si un résultat de test existe déjà
+    frozen_baselines: [E0_contrast_only, E5_grid_edge_check, X4_B_pw_ratio]   # scorés dans la même passe unique
+  error_analysis:
+    n_fp_examples: 12
+    n_fn_examples: 12
+    n_tp_examples: 6
+    n_tn_examples: 4
+  gradcam:
+    target_layer: layer4
+    n_per_category: 6
 
 api:
   host: 0.0.0.0

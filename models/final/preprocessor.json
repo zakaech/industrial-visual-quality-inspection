@@ -1,0 +1,24 @@
+{
+  "input_size": [
+    640,
+    224
+  ],
+  "resize_mode": "keep_aspect_pad",
+  "pad_value": "median",
+  "interpolation": "area",
+  "color_mode": "rgb",
+  "variant": "none",
+  "steps": [],
+  "normalization": {
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ]
+  }
+}

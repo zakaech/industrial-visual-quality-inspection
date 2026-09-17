@@ -422,6 +422,66 @@ class InferenceConfig:
 
 
 @dataclass(frozen=True)
+class CandidateConfig:
+    experiment_id: str
+    checkpoint: Path
+
+
+@dataclass(frozen=True)
+class VerificationConfig:
+    score_tolerance: float
+
+
+@dataclass(frozen=True)
+class Phase4CalibrationConfig:
+    n_bins: int
+    methods: tuple[str, ...]
+    keep_raw_if_ece_below: float
+
+
+@dataclass(frozen=True)
+class Phase4ThresholdConfig:
+    policy: str
+    target_recall: float
+    margin: str
+    report_recall_targets: tuple[float, ...]
+    cost_ratios: tuple[float, ...]
+
+
+@dataclass(frozen=True)
+class TestEvaluationConfig:
+    allowed_splits: tuple[str, ...]
+    single_evaluation: bool
+    frozen_baselines: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class ErrorAnalysisConfig:
+    n_fp_examples: int
+    n_fn_examples: int
+    n_tp_examples: int
+    n_tn_examples: int
+
+
+@dataclass(frozen=True)
+class Phase4GradCamConfig:
+    target_layer: str
+    n_per_category: int
+
+
+@dataclass(frozen=True)
+class Phase4Config:
+    report_subdir: str
+    candidate: CandidateConfig
+    verification: VerificationConfig
+    calibration: Phase4CalibrationConfig
+    threshold: Phase4ThresholdConfig
+    test: TestEvaluationConfig
+    error_analysis: ErrorAnalysisConfig
+    gradcam: Phase4GradCamConfig
+
+
+@dataclass(frozen=True)
 class DecisionLabels:
     positive: str
     negative: str
@@ -459,6 +519,7 @@ class Config:
     eda: EdaConfig
     baseline: BaselineConfig
     phase3: Phase3Config
+    phase4: Phase4Config
     inference: InferenceConfig
     api: ApiConfig
     logging: LoggingConfig

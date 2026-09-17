@@ -36,3 +36,4 @@ Thumbs.db
 # --- secrets / local overrides ---
 .env
 configs/local*.yaml
+models/final/*.pt

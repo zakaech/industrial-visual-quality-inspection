@@ -1,0 +1,212 @@
+{
+  "model": "X6_C_winner — ResNet-18 ImageNet, layer3+layer4+head fine-tuned, avg pooling",
+  "experiment_id": "X6_C_winner",
+  "checkpoint_source": "runs\\20260917_002044_X6_C_winner_18eed599c81b\\stage_C_best.pt",
+  "model_sha256": "4233a9cd80534b8efd20cb9abccb772911c9a7c8eb1cbba24fd27845b14e0cbb",
+  "checkpoint_metadata": {
+    "stage": "C",
+    "epoch": 5,
+    "metric": 0.9407885874568468,
+    "pooling": "avg",
+    "config_hash": "18eed599c81b",
+    "git_commit": "5b62df4beea504a7c1a868671f51613a38c8ca1e",
+    "seed": 42,
+    "pos_weight": 8.467005076142131,
+    "sampler": "none",
+    "checkpoint_sha256": "4233a9cd80534b8efd20cb9abccb772911c9a7c8eb1cbba24fd27845b14e0cbb"
+  },
+  "architecture": {
+    "architecture": "resnet18",
+    "pooling": "avg",
+    "feat_dim": 512,
+    "n_params": 11177025,
+    "n_params_by_group": {
+      "stem": 9536,
+      "layer1": 147968,
+      "layer2": 525568,
+      "layer3": 2099712,
+      "layer4": 8393728,
+      "head": 513
+    },
+    "head_bias": -2.1548378467559814
+  },
+  "preprocessor": {
+    "input_size": [
+      640,
+      224
+    ],
+    "resize_mode": "keep_aspect_pad",
+    "pad_value": "median",
+    "interpolation": "area",
+    "color_mode": "rgb",
+    "variant": "none",
+    "steps": [],
+    "normalization": {
+      "mean": [
+        0.485,
+        0.456,
+        0.406
+      ],
+      "std": [
+        0.229,
+        0.224,
+        0.225
+      ]
+    }
+  },
+  "training_recipe": {
+    "stages": "A (linear probe) -> B (layer4+head, X4) -> C (layer3+layer4+head)",
+    "pos_weight": 8.467005076142131,
+    "sampler": "none",
+    "bn_policy": "all_eval",
+    "optimizer": "AdamW, weight_decay 1e-4",
+    "lr_stage_C": {
+      "layer3": 5e-05,
+      "layer4": 0.0001,
+      "head": 0.0005
+    },
+    "batch_size": 16,
+    "augmentation": "hflip 0.5, vflip 0.5, brightness/contrast x[0.9,1.1] p 0.3 (train)",
+    "seed": 42
+  },
+  "data": {
+    "dataset": "kolektor_sdd2",
+    "splits_file": "data\\splits\\v1.csv",
+    "train": "1865 images (197 defective)",
+    "val": "466 images (49 defective)",
+    "test": "1004 images (110 defective) — not used before the freeze"
+  },
+  "validation_metrics": {
+    "average_precision": 0.9407885874568468,
+    "roc_auc": 0.9874223070523174,
+    "n_pos": 49,
+    "n_neg": 417,
+    "prevalence": 0.10515021459227468,
+    "average_precision_ci": {
+      "low": 0.8909649075290742,
+      "high": 0.9788468978425813,
+      "n_effective": 1000
+    },
+    "roc_auc_ci": {
+      "low": 0.9743966456981366,
+      "high": 0.9966879494932985,
+      "n_effective": 1000
+    },
+    "at_default_threshold": {
+      "threshold": 0.5,
+      "tp": 39,
+      "fp": 0,
+      "fn": 10,
+      "tn": 417,
+      "precision": 1.0,
+      "recall": 0.7959183673469388,
+      "fpr": 0.0,
+      "specificity": 1.0,
+      "f1": 0.8863636363636364,
+      "f2": 0.8297872340425532,
+      "accuracy": 0.9785407725321889
+    },
+    "at_recall_targets": [
+      {
+        "recall_target": 0.9,
+        "threshold": 0.028605593368411,
+        "tp": 45,
+        "fp": 14,
+        "fn": 4,
+        "tn": 403,
+        "precision": 0.7627118644067796,
+        "recall": 0.9183673469387755,
+        "fpr": 0.03357314148681055,
+        "specificity": 0.9664268585131894,
+        "f1": 0.8333333333333333,
+        "f2": 0.8823529411764706,
+        "accuracy": 0.9613733905579399
+      },
+      {
+        "recall_target": 0.95,
+        "threshold": 0.0197415295988321,
+        "tp": 47,
+        "fp": 35,
+        "fn": 2,
+        "tn": 382,
+        "precision": 0.573170731707317,
+        "recall": 0.9591836734693877,
+        "fpr": 0.08393285371702638,
+        "specificity": 0.9160671462829736,
+        "f1": 0.7175572519083968,
+        "f2": 0.8453237410071942,
+        "accuracy": 0.9206008583690987
+      },
+      {
+        "recall_target": 0.98,
+        "threshold": 0.0168518964201211,
+        "tp": 49,
+        "fp": 92,
+        "fn": 0,
+        "tn": 325,
+        "precision": 0.3475177304964539,
+        "recall": 1.0,
+        "fpr": 0.22062350119904076,
+        "specificity": 0.7793764988009593,
+        "f1": 0.5157894736842106,
+        "f2": 0.7270029673590505,
+        "accuracy": 0.8025751072961373
+      },
+      {
+        "recall_target": 0.99,
+        "threshold": 0.0168518964201211,
+        "tp": 49,
+        "fp": 92,
+        "fn": 0,
+        "tn": 325,
+        "precision": 0.3475177304964539,
+        "recall": 1.0,
+        "fpr": 0.22062350119904076,
+        "specificity": 0.7793764988009593,
+        "f1": 0.5157894736842106,
+        "f2": 0.7270029673590505,
+        "accuracy": 0.8025751072961373
+      }
+    ]
+  },
+  "threshold": {
+    "frozen": true,
+    "frozen_at": "2026-09-17T15:26:49+00:00",
+    "threshold": 0.018752005540198832,
+    "score": "raw sigmoid output of the model (no post-hoc calibration)",
+    "policy": "min_recall",
+    "target_recall": 0.95,
+    "margin": "midpoint_logit",
+    "threshold_min_recall": 0.0197415295988321,
+    "next_lower_positive_score": 0.0178111791610717,
+    "validation_at_threshold": {
+      "threshold": 0.018752005540198832,
+      "tp": 47,
+      "fp": 51,
+      "fn": 2,
+      "tn": 366,
+      "precision": 0.47959183673469385,
+      "recall": 0.9591836734693877,
+      "fpr": 0.1223021582733813,
+      "specificity": 0.8776978417266187,
+      "f1": 0.6394557823129252,
+      "f2": 0.7993197278911565,
+      "accuracy": 0.8862660944206009
+    },
+    "selected_on": "val (466 images, 49 defective)",
+    "calibration_decision": "raw",
+    "test_used": false
+  },
+  "frozen_at": "2026-09-17T15:26:49+00:00",
+  "provenance": {
+    "created_at": "2026-09-17T15:26:49+00:00",
+    "vqi_version": "0.1.0",
+    "git_commit": "24f9c190743b23f905bdee09e1fead5d27447adc",
+    "git_dirty": true,
+    "config_hash": "f9397663b72a",
+    "config_files": [
+      "configs\\default.yaml"
+    ],
+    "seed": 42
+  }
+}
