@@ -172,7 +172,7 @@ avec un résultat affiché (captures `frontend/e2e/screenshots/`, ignorées par 
 `docs/figures/phase7_web_interface_{reject,accept}.png`).
 
 Le job CI GitHub Actions `frontend` (`npm ci`, Prettier, `ng test`, `ng build`) a été rejoué sous Linux dans un
-conteneur `node:22-bookworm` — résultat en § 7.9. Le bout en bout n'est pas en CI (il exige l'API, le bundle réel
+conteneur `node:22-bookworm` (§ 7.9), puis exécuté réellement sur GitHub Actions au premier push : succès en 19 s. Le bout en bout n'est pas en CI (il exige l'API, le bundle réel
 et les données).
 
 ## 7.8 Problèmes rencontrés

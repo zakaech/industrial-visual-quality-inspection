@@ -191,8 +191,7 @@ version `SYN-…`, qu'un `POST /predict` sur `sample.png` renvoie une décision,
 puis que le `HEALTHCHECK` Docker passe à `healthy`. Il s'arrête à la première anomalie et affiche les
 journaux du conteneur.
 
-État de validation : **le dépôt n'a pas de dépôt distant GitHub configuré** (`git remote -v` vide), donc le
-workflow n'a pas encore été exécuté par GitHub Actions. Validation locale effectuée à la place :
+Validation locale, avant la publication du dépôt :
 
 - syntaxe YAML du workflow et de `compose.yaml` chargée sans erreur (`docker compose config` valide) ;
 - job `lint` : `ruff check .` et `ruff format --check .` propres en local ;
@@ -201,7 +200,10 @@ workflow n'a pas encore été exécuté par GitHub Actions. Validation locale ef
 - job `docker` : build avec `REQUIRE_MODEL=0` et `docker_smoke_test.sh … synthetic` exécutés en local avec le
   même script — `OK` en 16 s (hors build).
 
-La première exécution réelle sur GitHub reste à observer après création du dépôt distant.
+Première exécution réelle sur GitHub Actions (dépôt `zakaech/industrial-visual-quality-inspection`, commit
+`3cf85d1`, [run 35381407465](https://github.com/zakaech/industrial-visual-quality-inspection/actions/runs/35381407465)) :
+**succès des quatre jobs** — `lint` 7 s, `tests` 113 s, `docker` 70 s (build + smoke test), `frontend` 19 s
+(job ajouté en Phase 7).
 
 ## 6.12 Reproductibilité
 
@@ -258,6 +260,5 @@ sécurité complet (hors périmètre).
 - **Image volumineuse** (1,86 Go) par construction : PyTorch CPU. Un export ONNX + `onnxruntime` réduirait
   l'image de plus de moitié, mais changerait le chemin d'inférence et exigerait une revalidation des scores —
   hors périmètre de cette phase.
-- **CI non encore exécutée sur GitHub** (pas de dépôt distant) : validée localement, à confirmer au premier push.
 - **Limite de taille appliquée après réception** et **pas de détection d'images hors domaine** (limites
   héritées de la Phase 5).

@@ -1,5 +1,8 @@
 # Industrial Visual Quality Inspection
 
+[![CI](https://github.com/zakaech/industrial-visual-quality-inspection/actions/workflows/ci.yml/badge.svg)](https://github.com/zakaech/industrial-visual-quality-inspection/actions/workflows/ci.yml)
+[![Licence : MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
+
 Pipeline de deep learning pour la détection automatique de défauts de surface sur des pièces industrielles — de la
 donnée brute jusqu'à un service d'inférence conteneurisé et appelable.
 
