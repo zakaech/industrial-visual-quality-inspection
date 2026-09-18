@@ -28,7 +28,7 @@ src/vqi/preprocessing/
 └── compare.py    figures et analyse CNR de la Phase 2
 ```
 
-Décisions de conception défendables en entretien :
+Décisions de conception et leur justification :
 
 - **Une seule implémentation** pour l'entraînement (chemin) et l'API (octets) : `decode_image` passe *toujours*
   par `cv2.imdecode` sur un tampon, et un test de contrat vérifie l'égalité à l'octet près des deux sources
@@ -84,8 +84,8 @@ justifie a posteriori l'ajout de `local_stats` (validé avant exécution, pas ap
 - **Bord de grille** : la CV a choisi γ = 0,001 (borne basse) dans *toutes* les expériences RBF. Plutôt que
   d'ignorer le signal, deux contrôles : grille étendue (E5, choisit encore le coin : C = 1000, γ = 10⁻⁴,
   AP 0,862) et noyau **linéaire** (E5_linear_svm, optimum intérieur C = 0,1, AP 0,853). Conclusion : les
-  descripteurs sont séparés quasi linéairement ; le RBF n'apporte rien. C'est le genre de constat qu'on doit
-  savoir expliquer en entretien : γ → 0 rend le noyau RBF localement linéaire.
+  descripteurs sont séparés quasi linéairement ; le RBF n'apporte rien. Interprétation : γ → 0 rend le noyau RBF
+  localement linéaire.
 - Random Forest (E4, 500 arbres) : AP 0,805, IC recouvrant — comparaison secondaire, pas de gain.
 - `class_weight` (E2) : none 0,846, balanced 0,832, manuel {1 : 3} 0,846 — **aucun effet mesurable sur le
   classement**. C'est cohérent avec le cadrage : la pondération déplace la marge, pas l'ordre des scores ;
@@ -98,7 +98,7 @@ justifie a posteriori l'ajout de `local_stats` (validé avant exécution, pas ap
 des seuils, matrice au seuil par défaut (rapportée, jamais retenue). Les scores SVM sont des distances à la
 marge : aucune calibration n'est revendiquée, le seuil opérationnel est un sujet de Phase 4.
 
-## 7. Limites (à dire avant qu'on vous les oppose)
+## 7. Limites
 
 - 49 positifs en validation → IC de ±0,08 environ sur l'AP ; la plupart des écarts de la matrice sont dans le bruit.
 - 16 configurations comparées sur la même validation → optimisme de sélection ; seul le test (Phase 4) est non biaisé.

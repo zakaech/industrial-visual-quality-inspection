@@ -2,8 +2,8 @@
 
 **État : livrée le 17/09/2026.** Ce document décrit l'architecture du service, ses endpoints, ses formats,
 sa gestion des erreurs et la vérification réelle effectuée (serveur démarré, requêtes sur des images de
-**validation**). Chaque chiffre cité provient d'une exécution réelle de cette session (journaux
-`logs/api_serve.log`, sortie des tests) ; aucun chiffre n'est estimé.
+**validation**). Chaque chiffre cité provient d'une exécution réelle (journaux d'exécution locaux
+`logs/`, non versionnés, et sortie des tests) ; aucun chiffre n'est estimé.
 
 ## 5.1 Objectif
 
@@ -224,12 +224,12 @@ Intégrité vérifiée après l'exercice : `models/final/model.pt` SHA-256 `4233
   validation de `v1.csv`, égalité API = `Predictor`, seuil `0,018752` et SHA-256 `4233a9cd80534b8e` exposés
   par `/model-info`. Aucune image du test officiel n'est lue.
 
-## 5.10 Contraintes respectées
+## 5.10 Périmètre de la phase
 
-Pas de réentraînement, pas de X7, seuil / prétraitement / architecture / poids / calibration inchangés,
-test officiel non utilisé, résultats de Phase 4 non modifiés (le seul fichier de configuration touché est
-`api.model_version`, passé de `"TBD"` à `from_bundle`), pas de Docker ni de CI. Dépendance ajoutée :
-`httpx` en extra `dev` uniquement (client de test FastAPI).
+Aucun réentraînement ; seuil, prétraitement, architecture, poids et calibration inchangés ; test officiel non
+utilisé ; résultats de Phase 4 non modifiés (le seul changement de configuration est `api.model_version`, passé
+de `"TBD"` à `from_bundle`). Docker et la CI sont traités en Phase 6. Dépendance ajoutée : `httpx` en extra `dev`
+uniquement (client de test FastAPI).
 
 ## 5.11 Limites connues et alternatives
 

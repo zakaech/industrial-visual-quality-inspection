@@ -4,7 +4,7 @@
 dépose une image, lance l'inspection et lit la décision. Aucune logique ML côté navigateur : le score, le seuil,
 la décision, la latence et les métadonnées du modèle sont **affichés tels que reçus** de FastAPI. Modèle, seuil,
 prétraitement, `Predictor` et résultats de Phase 4 inchangés. Chaque chiffre cité provient d'une exécution réelle
-de cette session (tests unitaires, tests de bout en bout Playwright, journaux `logs/`).
+(tests unitaires, tests de bout en bout Playwright, journaux d'exécution locaux `logs/`, non versionnés).
 
 ![Interface — décision REJECT sur l'image de validation 10952](figures/phase7_web_interface_reject.png)
 
@@ -107,7 +107,7 @@ has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is pres
 ```
 
 (`curl -H "Origin: http://localhost:4200"` confirmait l'absence de l'en-tête ; `OPTIONS /predict` répondait 405.)
-Correctif minimal, autorisé par la règle 9 : `api.cors_origins` dans `configs/default.yaml` (liste **explicite**
+Correctif minimal : `api.cors_origins` dans `configs/default.yaml` (liste **explicite**
 `http://localhost:4200`, `http://127.0.0.1:4200` ; liste vide = pas de CORS), `CORSMiddleware` ajouté dans
 `create_app` **uniquement** si la liste est non vide, méthodes `GET`/`POST`, en-tête `X-Request-ID` autorisé et
 exposé, pas de `*`, pas de credentials. Le handler 500 (qui s'exécute hors du middleware) ajoute lui-même
@@ -192,9 +192,9 @@ et les données).
 | `npm run build` (production) | succès, 167,6 kB initial, 0 avertissement |
 | `npm run format:check` (Prettier) | conforme |
 | `npm run e2e` (Chrome réel, API locale) | 6 passés / 6 |
-| `pytest` (backend, CORS inclus) | voir rapport de phase (105 attendus : 102 + 3 tests CORS) |
+| `pytest` (backend, CORS inclus) | 105 passés / 105 (102 + 3 tests CORS) |
 | `ruff check .` / `ruff format --check .` | propres |
-| job CI `frontend` rejoué sous Linux (`node:22-bookworm`) | voir `logs/ci_frontend_linux.log` — résultat dans le rapport de phase |
+| job CI `frontend` rejoué sous Linux (`node:22-bookworm`, Node 22.23 / npm 10.9.8) | succès : `npm ci`, Prettier, 26 tests, build |
 | modèle / seuil | `model.pt` SHA-256 `4233a9cd80534b8e…`, `threshold.json` 0,018752 `frozen`, `git diff` vide sur `models/`, `reports/` |
 
 ## 7.10 Limites

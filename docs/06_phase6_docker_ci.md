@@ -4,7 +4,7 @@
 prétraitement et les résultats de Phase 4 sont inchangés. Elle rend le service d'inférence (Phase 5)
 reproductible et vérifiable : une image Docker CPU, non-root, contenant le bundle gelé, et une CI GitHub
 Actions minimale (lint, tests, build Docker + smoke test). Chaque chiffre cité provient d'une exécution
-réelle de cette session (journaux `logs/docker_build_*.log`, `logs/ci_tests_linux.log`, sorties `docker`).
+réelle (journaux d'exécution locaux `logs/`, non versionnés, et sorties `docker`).
 
 ## 6.1 Objectif
 
@@ -30,7 +30,7 @@ GitHub Actions ── lint ── tests ── docker build ── smoke test (b
 | Fichier | Rôle |
 |---|---|
 | `Dockerfile` | image de service : dépendances épinglées, package installé, bundle copié, utilisateur non-root, `HEALTHCHECK`, commande uvicorn |
-| `.dockerignore` | liste blanche : seuls `requirements-api.txt`, `pyproject.toml`, `README.md`, `src/`, `configs/default.yaml`, `models/final/` entrent dans le contexte |
+| `.dockerignore` | liste blanche : seuls `requirements-api.txt`, `pyproject.toml`, `README.md`, `LICENSE`, `src/`, `configs/default.yaml`, `models/final/` entrent dans le contexte |
 | `requirements-api.txt` | dépendances d'exécution de l'API uniquement (sous-ensemble de `requirements.txt`, mêmes versions) |
 | `compose.yaml` | un service `api`, port 8000 : `docker compose up --build` |
 | `scripts/docker_smoke_test.sh` | test de fumée d'une image (mode `synthetic` pour la CI, `real` en local) |

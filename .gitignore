@@ -26,9 +26,6 @@ venv/
 build/
 dist/
 
-# --- notebooks ---
-.ipynb_checkpoints/
-
 # --- os / ide ---
 .DS_Store
 Thumbs.db

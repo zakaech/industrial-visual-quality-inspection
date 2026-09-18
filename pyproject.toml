@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=77", "wheel"]  # >=77: PEP 639 license / license-files fields
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,8 +8,9 @@ version = "0.1.0"
 description = "Industrial visual quality inspection: surface-defect detection pipeline, from raw data to a containerised inference API."
 readme = "README.md"
 requires-python = ">=3.11,<3.12"
-license = { text = "MIT" }
-authors = [{ name = "Zakaria" }]
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Zakariae Echaaouer" }]
 dependencies = [
     # Inference API runtime (what the Docker image installs, pinned in requirements-api.txt).
     # Exact versions of everything are locked in requirements.txt (generated from a real install).

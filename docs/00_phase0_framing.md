@@ -51,8 +51,8 @@ recontrôlés sur les fichiers téléchargés (une vérification `expected_count
   qui porte tout l'argument d'asymétrie des coûts ne peut pas s'y formuler. La classification multi-classes sur NEU
   est en outre un benchmark quasi saturé : les résultats seraient flatteurs mais peu informatifs. Il reste candidat
   pour une *extension v2* (typage du défaut), le code étant agnostique au dataset via la configuration.
-- **DAGM 2007** — textures et défauts synthétiques. Facile à défendre en cours, difficile à défendre en entretien
-  sur de la vision « production ».
+- **DAGM 2007** — textures et défauts synthétiques. Adapté à un exercice pédagogique, peu représentatif
+  d'un cas de vision « production ».
 - **MVTec AD** — la référence de la *détection d'anomalies non supervisée*. Les images d'entraînement sont toutes
   saines : un classifieur supervisé ne pourrait être entraîné qu'en découpant le (petit, par catégorie) jeu de test.
   Il convient mieux à une approche par banque de mémoire (PatchCore) qu'à un pipeline de fine-tuning, et ses ~5 Go /
@@ -80,7 +80,7 @@ Pourquoi il convient à ce projet :
    réaliste de ~11 % qui rend la discussion sur le déséquilibre et l'asymétrie des coûts incontournable plutôt
    qu'académique.
 2. **Images réelles de production** d'une pièce industrielle (commutateurs électriques), avec les familles de défauts
-   citées dans le brief : rayures, petites taches, imperfections de surface ; beaucoup de défauts sont petits et
+   visées par le projet : rayures, petites taches, imperfections de surface ; beaucoup de défauts sont petits et
    subtils → le problème n'est pas saturé.
 3. **Masques au pixel** même si la v1 travaille au niveau image : ils permettent (a) le *rappel en fonction de la
    taille du défaut*, (b) une vérification Grad-CAM que le modèle regarde bien le défaut, (c) une extension
@@ -103,7 +103,7 @@ publics (discipline requise) ; les labels dérivent des masques, donc les défau
 | B. Multi-classes par type de défaut | labels typés (NEU, Severstal) | oriente la pièce vers la bonne reprise | KSDD2 n'a qu'un seul type « défectueux » → impossible ici. L'asymétrie devient une matrice de coûts ; « sain » doit rester une classe. |
 | C. Détection d'anomalies non supervisée | images saines uniquement | robustesse aux types de défauts jamais vus | Features gelées (PatchCore) — peu à entraîner ; le seuil de fonctionnement exige *quand même* des défauts étiquetés en validation ; localisation des petits défauts plus difficile à basse résolution sur CPU. |
 
-**Recommandation pour la v1 : option A.** C'est la seule option où chaque exigence du brief (seuillage à coût
+**Recommandation pour la v1 : option A.** C'est la seule option où chaque exigence du cadrage (seuillage à coût
 asymétrique, choix de la perte, décision calibrée dans l'API) est exercée de bout en bout.
 L'option C est la comparaison naturelle en v2 sur le *même* découpage KSDD2 (entraînement sur les images saines
 uniquement, évaluation sur les mêmes jeux de validation/test), ce qui donnerait une comparaison supervisé /
@@ -265,7 +265,7 @@ n'améliore pas le classement » soit *mesurée*, pas supposée.
 | 3 | Fabrique de modèles, boucle d'entraînement, checkpoints, dry-run chronométré d'une epoch | Un entraînement complet avec courbes journalisées |
 | 4 | Évaluation : métriques, politique de seuil, figures, analyse d'erreurs, évaluation finale sur le test | Rapport avec chiffres réels et IC |
 | 5 | Module d'inférence, service FastAPI, Dockerfile, tests d'API | `docker run` → `POST /predict` renvoie une décision |
-| 6 | README avec résultats, journal des décisions, notes d'entretien | Chaque chiffre traçable jusqu'à un run id |
+| 6 | README avec résultats, journal des décisions, notes de synthèse | Chaque chiffre traçable jusqu'à un run id |
 
 ---
 

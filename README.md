@@ -3,8 +3,9 @@
 Pipeline de deep learning pour la détection automatique de défauts de surface sur des pièces industrielles — de la
 donnée brute jusqu'à un service d'inférence conteneurisé et appelable.
 
-**État : Phase 4 livrée — modèle final gelé et évalué une seule fois sur le test officiel.** Tous les
-chiffres ci-dessous proviennent d'exécutions journalisées (`reports/*/…json`).
+**État : projet livré (Phases 0 à 7) — modèle final gelé et évalué une seule fois sur le test officiel, servi
+par une API FastAPI conteneurisée et une interface web Angular.** Tous les chiffres ci-dessous proviennent
+d'exécutions journalisées (`reports/*/…json`).
 
 | Phase | Contenu | Document |
 |---|---|---|
@@ -40,7 +41,7 @@ Les données ne sont pas versionnées. La reproductibilité repose sur la somme 
 
 Archive brute → vérification d'intégrité → manifeste → recherche de doublons → découpage stratifié → prétraitement →
 fine-tuning ResNet-18 → choix du seuil sur la validation → évaluation finale unique sur le test → export → FastAPI →
-Docker. Schéma et contrats par étape : [docs/pipeline.md](docs/pipeline.md).
+Docker → interface Angular. Schéma et contrats par étape : [docs/pipeline.md](docs/pipeline.md).
 
 ## Résultats
 
@@ -64,7 +65,6 @@ Références gelées scorées dans la même passe de test : contraste seul AP 0,
 ├── configs/            # configuration YAML (default.yaml + experiments/)
 ├── data/               # raw/ interim/ processed/ ignorés par git ; splits/ versionné
 ├── docs/               # cadrage, pipeline, une note par phase
-├── notebooks/          # exploration uniquement ; rien dans le pipeline n'en dépend
 ├── reports/            # eda/, phase2/, phase3/, phase4/ : rapports Markdown générés + figures + résultats JSON/CSV
 ├── scripts/            # points d'entrée CLI (une action par script)
 ├── src/vqi/            # le package (vqi = visual quality inspection)
@@ -190,3 +190,13 @@ Graine `42` partout (`reproducibility.seed` dans [configs/default.yaml](configs/
 déterministes quand ils existent, workers de DataLoader seedés, configuration figée et hash git enregistrés avec
 chaque artefact (`*.meta.json`, un JSON par expérience). Le non-déterminisme résiduel sur CPU est documenté dans le
 cadrage (risque R9).
+
+## Licence
+
+- **Code** (package `vqi`, scripts, API, interface Angular, tests, Dockerfile, CI) : [MIT](LICENSE)
+  (texte original en anglais, seul à faire foi ; [traduction française](LICENSE.fr.md) à titre informatif).
+- **Jeu de données KolektorSDD2** : © Kolektor Group / Université de Ljubljana, licence
+  [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) — usage non commercial, attribution
+  (Božič, Tabernik & Skočaj, *Computers in Industry*, 2021), partage aux mêmes conditions. Les données ne sont pas
+  versionnées ici ; les figures et rapports qui reproduisent des images du jeu de données, ainsi que tout modèle
+  entraîné dessus (`models/final/model.pt`, non versionné), restent soumis à ces conditions.

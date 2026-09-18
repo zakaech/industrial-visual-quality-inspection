@@ -1,12 +1,13 @@
 # Allow-list: the build context contains ONLY what the Dockerfile copies.
 # Everything else is excluded — in particular .git, .github, .venv, __pycache__, .pytest_cache,
 # .mypy_cache, .ruff_cache, *.pyc, logs/, reports/, runs/, data/ (raw dataset, splits),
-# notebooks/, docs/, tests/, scripts/, .env and local config overrides.
+# docs/, tests/, scripts/, .env and local config overrides.
 *
 
 !requirements-api.txt
 !pyproject.toml
 !README.md
+!LICENSE
 !src/
 !configs/default.yaml
 !models/final/

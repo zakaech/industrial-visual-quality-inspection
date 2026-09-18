@@ -1,4 +1,4 @@
-vqi.cli: bootstrap | config=configs/default.yaml overrides=[] config_hash=45ede5e751b2 seed=42 cwd=C:\Users\zakii\OneDrive\Bureau\projets cv\industrial-visual-quality-inspection
+vqi.cli: bootstrap | config=configs/default.yaml overrides=[] config_hash=45ede5e751b2 seed=42 cwd=<repository root>
 vqi.training.loop: stage.start | stage=A trainable=513 lr={'head': 0.001} augment=False cached_features=True
 vqi.training.features: features.frozen | split=train n=1865 dim=512 seconds=259.2
 vqi.training.features: features.frozen | split=val n=466 dim=512 seconds=77.2

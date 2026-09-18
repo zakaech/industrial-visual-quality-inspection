@@ -25,7 +25,7 @@ COPY requirements-api.txt ./
 RUN pip install -r requirements-api.txt
 
 # 2. the package itself (README.md is referenced by pyproject's `readme`)
-COPY pyproject.toml README.md ./
+COPY pyproject.toml README.md LICENSE ./
 COPY src/ src/
 RUN pip install --no-deps . && rm -rf build
 
