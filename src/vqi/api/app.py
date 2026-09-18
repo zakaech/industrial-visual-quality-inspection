@@ -19,6 +19,7 @@ from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from vqi import __version__
@@ -114,6 +115,15 @@ def create_app(cfg: Config | None = None, bundle_dir: str | Path | None = None) 
         lifespan=lifespan,
     )
     app.include_router(router)
+    if cfg.api.cors_origins:
+        # browsers only (the Angular interface): explicit origins, no wildcard, no credentials
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=list(cfg.api.cors_origins),
+            allow_methods=["GET", "POST"],
+            allow_headers=["X-Request-ID"],
+            expose_headers=["X-Request-ID"],
+        )
 
     @app.middleware("http")
     async def request_id_middleware(request: Request, call_next):
@@ -145,11 +155,16 @@ def create_app(cfg: Config | None = None, bundle_dir: str | Path | None = None) 
             path=request.url.path,
             error=type(exc).__name__,
         )
-        # this handler runs outside request_id_middleware, so the header is set here
+        # this handler runs outside request_id_middleware and CORSMiddleware, so both headers
+        # are set here (otherwise a browser client would see a network error instead of a 500)
+        headers = {"X-Request-ID": rid} if rid else {}
+        origin = request.headers.get("origin")
+        if origin and origin in cfg.api.cors_origins:
+            headers.update({"Access-Control-Allow-Origin": origin, "Vary": "Origin"})
         return JSONResponse(
             status_code=500,
             content={"detail": "internal error", "request_id": rid},
-            headers={"X-Request-ID": rid} if rid else None,
+            headers=headers,
         )
 
     return app

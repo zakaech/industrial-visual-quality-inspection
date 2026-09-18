@@ -1,4 +1,4 @@
-# Minimal CI: lint, tests, Docker build + smoke test. No GPU, no dataset, no real model, no
+# Minimal CI: lint, tests, Docker build + smoke test, Angular interface. No GPU, no dataset, no real model, no
 # secrets. The only network dependencies are PyPI / the PyTorch CPU index (pinned versions) and,
 # for the test job, the public ImageNet ResNet-18 backbone that torchvision downloads (hash-checked
 # by torchvision, cached between runs). The official test split is never touched: it is not in
@@ -67,3 +67,22 @@ jobs:
         run: docker image ls vqi-api:ci
       - name: Smoke test (synthetic bundle generated inside the image, mounted read-only)
         run: bash scripts/docker_smoke_test.sh vqi-api:ci synthetic
+
+  frontend:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm run format:check
+      - name: Unit tests (vitest + jsdom, no API needed)
+        run: npx ng test --watch=false
+      - run: npm run build

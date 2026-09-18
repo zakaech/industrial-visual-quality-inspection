@@ -1,0 +1,282 @@
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">
+      <svg
+        viewBox="0 0 24 24"
+        width="26"
+        height="26"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+      >
+        <path d="M12 2.5 20.5 7v10L12 21.5 3.5 17V7z" />
+        <circle cx="12" cy="12" r="3.2" />
+      </svg>
+    </span>
+    <div>
+      <h1>Industrial Visual Quality Inspection</h1>
+      <p class="tagline">AI-powered visual inspection — surface defect detection</p>
+    </div>
+  </div>
+  <div class="api-status" role="status" [attr.data-state]="apiState()">
+    <span class="dot" aria-hidden="true"></span>
+    @switch (apiState()) {
+      @case ('checking') {
+        Connecting to the inspection service…
+      }
+      @case ('online') {
+        Service online
+        @if (modelInfo(); as info) {
+          <span class="sep" aria-hidden="true">·</span>
+          <span class="mono">{{ info.model_version }}</span>
+        }
+      }
+      @case ('offline') {
+        Service unavailable
+        <button type="button" class="link" (click)="loadModelInfo()">Retry</button>
+      }
+    }
+  </div>
+</header>
+
+<main class="layout">
+  <!-- ------------------------------------------------------------ upload -->
+  <section class="panel" aria-labelledby="inspection-title">
+    <h2 id="inspection-title">Inspection</h2>
+
+    <div
+      class="dropzone"
+      [class.active]="dragActive()"
+      [class.filled]="selectedFile() !== null"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave()"
+      (drop)="onDrop($event)"
+    >
+      <input
+        #fileInput
+        type="file"
+        id="file-input"
+        class="visually-hidden"
+        tabindex="-1"
+        [accept]="acceptAttribute"
+        (change)="onFileInput($event)"
+        aria-label="Choose an image to inspect"
+      />
+
+      @if (selectedFile(); as file) {
+        <figure class="preview">
+          <div class="preview-frame">
+            <img [src]="previewUrl()" [alt]="'Preview of ' + file.name" />
+          </div>
+          <figcaption>
+            <span class="file-name" [title]="file.name">{{ file.name }}</span>
+            <span class="file-meta">{{ formatBytes(file.size) }} · {{ file.type }}</span>
+            <span class="file-actions">
+              <button type="button" class="secondary" (click)="openFilePicker()">Replace</button>
+              <button type="button" class="secondary" (click)="clearFile()">Remove</button>
+            </span>
+          </figcaption>
+        </figure>
+      } @else {
+        <div class="dropzone-empty">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            width="36"
+            height="36"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+          >
+            <path d="M12 16V4m0 0-4 4m4-4 4 4" />
+            <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
+          </svg>
+          <p class="dropzone-title">Drop an image here</p>
+          <p class="dropzone-hint">PNG, JPEG or BMP · up to {{ maxUploadMb }} MB</p>
+          <button type="button" class="secondary" (click)="openFilePicker()">Choose image</button>
+        </div>
+      }
+    </div>
+
+    @if (fileError(); as message) {
+      <p class="message error" role="alert">{{ message }}</p>
+    }
+
+    <button
+      type="button"
+      class="primary inspect"
+      [disabled]="!canInspect()"
+      [attr.aria-busy]="status() === 'loading'"
+      (click)="inspect()"
+    >
+      @if (status() === 'loading') {
+        <span class="spinner" aria-hidden="true"></span>
+        Inspecting…
+      } @else {
+        Inspect image
+      }
+    </button>
+  </section>
+
+  <!-- ------------------------------------------------------------ result -->
+  <section class="panel" aria-labelledby="result-title">
+    <h2 id="result-title">Inspection result</h2>
+
+    <div class="result-body" aria-live="polite" aria-atomic="true">
+      @switch (status()) {
+        @case ('idle') {
+          <p class="placeholder">No image selected.</p>
+        }
+        @case ('ready') {
+          <p class="placeholder">
+            Ready to inspect <span class="mono">{{ selectedFile()?.name }}</span
+            >.
+          </p>
+        }
+        @case ('loading') {
+          <p class="placeholder busy">
+            <span class="spinner dark" aria-hidden="true"></span>
+            Inspecting image…
+          </p>
+        }
+        @case ('error') {
+          @if (error(); as err) {
+            <div class="message error" role="alert">
+              <p>{{ err.message }}</p>
+              @if (err.kind === 'offline') {
+                <p class="hint">
+                  Expected at <span class="mono">{{ apiBaseUrl }}</span
+                  >. Start it with <span class="mono">python scripts/serve_api.py</span> or
+                  <span class="mono">docker compose up</span>, then retry.
+                </p>
+              }
+              @if (err.requestId) {
+                <p class="hint">
+                  Request id <span class="mono">{{ err.requestId }}</span>
+                </p>
+              }
+            </div>
+          }
+        }
+        @case ('success') {
+          @if (result(); as r) {
+            <div class="decision" [class.reject]="isReject()" [class.accept]="!isReject()">
+              <span class="decision-icon" aria-hidden="true">
+                @if (isReject()) {
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="30"
+                    height="30"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                  >
+                    <path d="M6 6l12 12M18 6 6 18" />
+                  </svg>
+                } @else {
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="30"
+                    height="30"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                  >
+                    <path d="M4.5 12.5 9.5 17.5 19.5 7" />
+                  </svg>
+                }
+              </span>
+              <div>
+                <span class="decision-label">Decision</span>
+                <strong class="decision-value" data-testid="decision">{{ r.decision }}</strong>
+                <span class="decision-hint">
+                  {{
+                    isReject()
+                      ? 'Defect detected — part rejected'
+                      : 'No defect detected — part accepted'
+                  }}
+                </span>
+              </div>
+            </div>
+
+            <dl class="metrics">
+              <div>
+                <dt>Probability</dt>
+                <dd data-testid="probability" [attr.data-raw]="r.probability">
+                  {{ formatPercent(r.probability) }}
+                </dd>
+                <dd class="sub">raw score {{ formatScore(r.probability) }}</dd>
+              </div>
+              <div>
+                <dt>Threshold</dt>
+                <dd data-testid="threshold" [attr.data-raw]="r.threshold">
+                  {{ formatPercent(r.threshold, 4) }}
+                </dd>
+                <dd class="sub">{{ positiveLabel() }} if score ≥ {{ formatScore(r.threshold) }}</dd>
+              </div>
+              <div>
+                <dt>Latency</dt>
+                <dd data-testid="latency" [attr.data-raw]="r.latency_ms">
+                  {{ formatLatency(r.latency_ms) }}
+                </dd>
+                <dd class="sub">server-side inference</dd>
+              </div>
+            </dl>
+
+            <p class="meta">
+              <span class="mono" [title]="r.image_id">{{ r.image_id }}</span>
+              <span class="sep" aria-hidden="true">·</span>
+              model <span class="mono">{{ r.model_version }}</span>
+              <span class="sep" aria-hidden="true">·</span>
+              request <span class="mono">{{ r.request_id }}</span>
+            </p>
+          }
+        }
+      }
+    </div>
+  </section>
+</main>
+
+<!-- ------------------------------------------------------------ model strip -->
+<footer class="model-strip" aria-label="Model information">
+  @if (modelInfo(); as info) {
+    <dl>
+      <div>
+        <dt>Model</dt>
+        <dd class="mono" data-testid="model-version">{{ info.model_version }}</dd>
+      </div>
+      <div>
+        <dt>Threshold</dt>
+        <dd data-testid="model-threshold">
+          <span class="mono">{{ formatScore(info.threshold.value) }}</span>
+          <span class="sub"
+            >{{ info.threshold.policy }} {{ info.threshold.target_recall }} ·
+            {{ info.threshold.calibration }} scores</span
+          >
+        </dd>
+      </div>
+      <div>
+        <dt>Architecture</dt>
+        <dd>{{ architectureLabel(info) }}</dd>
+      </div>
+      <div>
+        <dt>Input</dt>
+        <dd>{{ inputSizeLabel(info) }}</dd>
+      </div>
+      <div>
+        <dt>Checkpoint</dt>
+        <dd class="mono" [title]="info.model_sha256">
+          sha256 {{ info.model_sha256.slice(0, 12) }}…
+        </dd>
+      </div>
+    </dl>
+  } @else {
+    <p class="placeholder">
+      @if (apiState() === 'checking') {
+        Loading model information…
+      } @else {
+        Model information unavailable — the service could not be reached.
+      }
+    </p>
+  }
+</footer>

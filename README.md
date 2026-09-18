@@ -15,6 +15,7 @@ chiffres ci-dessous proviennent d'exécutions journalisées (`reports/*/…json`
 | 4 | Vérification, calibration, seuil gelé, évaluation unique du test, erreurs, Grad-CAM | [docs/04_phase4_final_evaluation.md](docs/04_phase4_final_evaluation.md) · [rapport Phase 4](reports/phase4/phase4_report.md) |
 | 5 | API d'inférence FastAPI (`/health`, `/model-info`, `/predict`) sur le bundle gelé | [docs/05_phase5_api.md](docs/05_phase5_api.md) |
 | 6 | Image Docker CPU non-root (bundle intégré), Compose, CI GitHub Actions (lint, tests, build + smoke test) | [docs/06_phase6_docker_ci.md](docs/06_phase6_docker_ci.md) |
+| 7 | Interface web Angular : image → inspect → décision, au-dessus de l'API | [docs/07_phase7_web_interface.md](docs/07_phase7_web_interface.md) |
 
 ## Problème
 
@@ -76,6 +77,7 @@ Références gelées scorées dans la même passe de test : contraste seul AP 0,
 │   ├── inference/      # Predictor : bundle gelé → prétraiter → scorer → décider (test et API)
 │   └── api/            # application FastAPI : app (chargement unique), routes, schémas
 ├── tests/              # dataset synthétique, sans données réelles
+├── frontend/           # interface web Angular 21 (src/app : core/services, models, pages/inspection ; e2e/ Playwright)
 ├── models/final/       # bundle gelé : threshold.json, preprocessor.json, model_card.json (model.pt ignoré par git)
 ├── runs/               # sorties d'entraînement, ignorées par git
 ├── logs/               # journaux d'exécution, ignorés par git
@@ -87,7 +89,8 @@ Références gelées scorées dans la même passe de test : contraste seul AP 0,
 ## Stack
 
 Python 3.11 · PyTorch / torchvision · OpenCV · scikit-learn · NumPy / pandas · FastAPI / Uvicorn · Docker
-(+ matplotlib pour les figures). Machine cible sans GPU CUDA (tout tourne sur CPU).
+(+ matplotlib pour les figures) · Angular 21 / TypeScript pour l'interface web. Machine cible sans GPU CUDA
+(tout tourne sur CPU).
 
 ## Démarrage
 
@@ -134,6 +137,30 @@ curl -X POST http://127.0.0.1:8000/predict -F "file=@data/raw/kolektor_sdd2/trai
 400 (vide), 413 (> `api.max_upload_mb`), 415 (type non image), 422 (champ absent ou image indécodable).
 Latence mesurée côté serveur sur CPU : médiane 256 ms. Détails, formats, journaux et limites :
 [docs/05_phase5_api.md](docs/05_phase5_api.md).
+
+## Web Interface
+
+Interface Angular minimaliste (`frontend/`) au-dessus de l'API : **image → Inspect → décision**. Elle n'embarque
+aucune logique ML — score, seuil, décision, latence et métadonnées du modèle sont affichés tels que renvoyés par
+FastAPI (`/model-info`, `/predict`).
+
+```
+Angular → FastAPI → Predictor → X6
+```
+
+![Interface web — décision REJECT sur une image de validation](docs/figures/phase7_web_interface_reject.png)
+
+```bash
+python scripts/serve_api.py          # ou docker compose up --build  → http://127.0.0.1:8000
+cd frontend && npm install && npm start   # → http://localhost:4200 (Node 22 ; npx npm@11 install si npm 10.9 échoue)
+npm test                              # 26 tests unitaires (vitest + jsdom, sans API)
+npm run e2e                           # bout en bout Chrome → Angular → API, images de validation 10004 / 10045 / 10952
+```
+
+Exemple : déposer `data/raw/kolektor_sdd2/train/10952.png` (validation, défectueuse) → **REJECT**, probabilité
+100.00 %, seuil 1.8752 %, latence affichée = `latency_ms` de l'API. URL de l'API dans
+`frontend/src/environments/environment*.ts` ; origines autorisées (CORS) dans `api.cors_origins` de
+[configs/default.yaml](configs/default.yaml). Détails : [docs/07_phase7_web_interface.md](docs/07_phase7_web_interface.md).
 
 ## Docker
 

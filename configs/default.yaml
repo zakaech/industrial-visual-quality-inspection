@@ -336,6 +336,9 @@ api:
   model_version: from_bundle           # <experiment_id>-<sha256 du modèle[:12]>, lu dans models/final/model_card.json
   max_upload_mb: 10
   allowed_content_types: ["image/png", "image/jpeg", "image/bmp"]
+  cors_origins:                        # navigateurs autorisés à appeler l'API (interface Angular en dev) ; vide = pas de CORS
+    - http://localhost:4200
+    - http://127.0.0.1:4200
   decision_labels:
     positive: REJECT
     negative: ACCEPT

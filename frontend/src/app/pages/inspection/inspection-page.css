@@ -1,0 +1,256 @@
+/* Two panels (upload | result); single column under 1024px. Header/footer styles: styles.css. */
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1.5rem;
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 1.5rem clamp(1rem, 4vw, 2.5rem);
+  align-items: start;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.panel h2 {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+/* Drop zone / preview */
+.dropzone {
+  border: 2px dashed var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--surface-alt);
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.dropzone.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.dropzone.filled {
+  border-style: solid;
+  padding: 0.75rem;
+}
+
+.dropzone-empty {
+  text-align: center;
+  color: var(--ink-soft);
+  padding: 1.5rem;
+}
+
+.dropzone-title {
+  margin-top: 0.5rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.dropzone-hint {
+  font-size: 0.85rem;
+  margin: 0.25rem 0 1rem;
+}
+
+.preview {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.preview-frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-height: 420px;
+  background: #0f151b;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.preview-frame img {
+  max-height: 420px;
+  object-fit: contain;
+}
+
+.preview figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.75rem;
+  font-size: 0.9rem;
+}
+
+.file-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.file-meta {
+  color: var(--ink-soft);
+}
+
+.file-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.file-actions .secondary {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.85rem;
+}
+
+.inspect {
+  padding: 0.85rem 1.25rem;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+}
+
+/* Result */
+.result-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 120px;
+}
+
+.busy {
+  display: flex;
+  align-items: center;
+}
+
+.decision {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  border-radius: var(--radius);
+  border: 1px solid;
+}
+
+.decision.accept {
+  color: var(--accept);
+  background: var(--accept-soft);
+  border-color: #b7dec8;
+}
+
+.decision.reject {
+  color: var(--reject);
+  background: var(--reject-soft);
+  border-color: #efbfb9;
+}
+
+.decision-icon {
+  display: inline-flex;
+  padding: 0.5rem;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+}
+
+.decision-label {
+  display: block;
+  font-size: 0.75rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.decision-value {
+  display: block;
+  font-size: 1.9rem;
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+}
+
+.decision-hint {
+  display: block;
+  font-size: 0.9rem;
+  margin-top: 0.15rem;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.metrics > div {
+  background: var(--surface-alt);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.75rem 0.9rem;
+  min-width: 0;
+}
+
+.metrics dt {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.metrics dd:not(.sub) {
+  font-size: 1.35rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  margin-top: 0.15rem;
+}
+
+.sub {
+  font-size: 0.78rem;
+  color: var(--ink-faint);
+  display: block;
+}
+
+.meta {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+
+@media (max-width: 1023px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .metrics {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .file-actions {
+    margin-left: 0;
+  }
+
+  .dropzone {
+    min-height: 220px;
+  }
+}

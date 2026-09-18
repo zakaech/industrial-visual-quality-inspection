@@ -495,6 +495,7 @@ class ApiConfig:
     max_upload_mb: int
     allowed_content_types: tuple[str, ...]
     decision_labels: DecisionLabels
+    cors_origins: tuple[str, ...]
 
 
 @dataclass(frozen=True)

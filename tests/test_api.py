@@ -172,6 +172,59 @@ def test_no_traceback_leaks_on_internal_error(cfg: Config, synthetic_bundle: Pat
     assert "boom" not in r.text and "Traceback" not in r.text
 
 
+# ------------------------------------------------------------------------------ CORS (Phase 7)
+
+
+def test_cors_allows_only_the_configured_browser_origins(client: TestClient):
+    allowed = "http://localhost:4200"
+    r = client.get("/model-info", headers={"Origin": allowed})
+    assert r.status_code == 200
+    assert r.headers.get("access-control-allow-origin") == allowed
+    assert "x-request-id" in r.headers.get("access-control-expose-headers", "").lower()
+
+    r = client.get("/model-info", headers={"Origin": "http://evil.example"})
+    assert r.status_code == 200 and "access-control-allow-origin" not in r.headers
+
+    preflight = client.options(
+        "/predict",
+        headers={"Origin": allowed, "Access-Control-Request-Method": "POST"},
+    )
+    assert preflight.status_code == 200
+    assert preflight.headers.get("access-control-allow-origin") == allowed
+    assert "POST" in preflight.headers.get("access-control-allow-methods", "")
+
+
+def test_cors_is_disabled_when_no_origin_is_configured(cfg: Config, synthetic_bundle: Path):
+    import yaml
+
+    override = synthetic_bundle / "no_cors.yaml"
+    override.write_text(yaml.safe_dump({"api": {"cors_origins": []}}), encoding="utf-8")
+    no_cors = load_config(REPO_ROOT / "configs" / "default.yaml", overrides=[override])
+    with TestClient(create_app(no_cors, synthetic_bundle)) as c:
+        r = c.get("/health", headers={"Origin": "http://localhost:4200"})
+        assert r.status_code == 200 and "access-control-allow-origin" not in r.headers
+
+
+def test_internal_error_keeps_cors_header_for_an_allowed_origin(
+    cfg: Config, synthetic_bundle: Path
+):
+    class Broken:
+        threshold = 0.5
+
+        def predict(self, *_a, **_k):
+            raise RuntimeError("boom")
+
+    with TestClient(create_app(cfg, synthetic_bundle), raise_server_exceptions=False) as c:
+        c.app.state.predictor = Broken()
+        r = c.post(
+            "/predict",
+            files={"file": ("p.png", _png_bytes(), "image/png")},
+            headers={"Origin": "http://localhost:4200"},
+        )
+    assert r.status_code == 500
+    assert r.headers.get("access-control-allow-origin") == "http://localhost:4200"
+
+
 # ------------------------------------------------------------------------------ single load
 
 
