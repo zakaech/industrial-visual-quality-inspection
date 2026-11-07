@@ -103,7 +103,7 @@ de développement, le test unique de la Phase 4 les remet en perspective (X6 et 
 
 Incident méthodologique documenté : la première tentative de X2 a été interrompue avant tout résultat parce que la
 politique BatchNorm `frozen_eval` détruisait la tête de la sonde à la transition A → B (perte val 0,20 → 15,3) ;
-correctif `all_eval` + contrôle de transition (commit `36dcdc9`), voir §3.
+correctif `all_eval` + contrôle de transition (commit `9d704ec`), voir §3.
 
 ## 8. Tests
 

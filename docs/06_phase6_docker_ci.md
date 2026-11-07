@@ -200,10 +200,7 @@ Validation locale, avant la publication du dépôt :
 - job `docker` : build avec `REQUIRE_MODEL=0` et `docker_smoke_test.sh … synthetic` exécutés en local avec le
   même script — `OK` en 16 s (hors build).
 
-Première exécution réelle sur GitHub Actions (dépôt `zakaech/industrial-visual-quality-inspection`, commit
-`3cf85d1`, [run 35381407465](https://github.com/zakaech/industrial-visual-quality-inspection/actions/runs/35381407465)) :
-**succès des quatre jobs** — `lint` 7 s, `tests` 113 s, `docker` 70 s (build + smoke test), `frontend` 19 s
-(job ajouté en Phase 7).
+La CI GitHub Actions tourne à chaque push sur `main` (voir le badge du README).
 
 ## 6.12 Reproductibilité
 
@@ -239,7 +236,7 @@ Anomalie trouvée par la simulation Linux, et corrigée : le premier passage a d
 `git_commit = None` et le générateur de rapport de Phase 4 faisait `None[:7]`. Diagnostic confirmé en
 installant `git` dans le conteneur (le test passe), puis correctif de robustesse dans
 `src/vqi/evaluation/report_phase4.py` (`_short(commit)` → `unknown` si absent). Les artefacts de
-`reports/phase4/` n'ont **pas** été régénérés : ils sont identiques au commit `42953ce` (`git status` propre
+`reports/phase4/` n'ont **pas** été régénérés : ils sont identiques au commit `194d16a` (`git status` propre
 sur `reports/`). Sur un runner GitHub, `git` est présent, mais la suite ne doit pas en dépendre.
 
 ## 6.14 Sécurité minimale

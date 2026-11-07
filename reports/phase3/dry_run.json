@@ -248,7 +248,7 @@
   "provenance": {
     "created_at": "2026-09-16T14:05:09+00:00",
     "vqi_version": "0.1.0",
-    "git_commit": "9172bb2ec98ff4f95e2f3eb5c398d24bfb6a6d90",
+    "git_commit": "75720eb0d09606c8b66d55c4387f36e52668e120",
     "git_dirty": true,
     "config_hash": "45ede5e751b2",
     "config_files": [

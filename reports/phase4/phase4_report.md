@@ -17,7 +17,7 @@ puis évaluation finale unique sur le test officiel KolektorSDD2, analyse des er
 |---|---|
 | Architecture | ResNet-18 ImageNet (`18eed599c81b`), pooling `avg`, tête Dropout 0,2 + Linear(512→1) — 11,177,025 paramètres |
 | Recette | A (linear probe) -> B (layer4+head, X4) -> C (layer3+layer4+head) ; `pos_weight` 8,467 ; sampler none ; BN `all_eval` ; AdamW wd 1e-4 ; LR C {"layer3": 5e-05, "layer4": 0.0001, "head": 0.0005} ; batch 16 ; seed 42 |
-| Checkpoint | `runs\20260917_002044_X6_C_winner_18eed599c81b\stage_C_best.pt` — étape C, époque 5, AP val 0,9408 (critère préenregistré), commit d'entraînement `5b62df4` |
+| Checkpoint | `runs\20260917_002044_X6_C_winner_18eed599c81b\stage_C_best.pt` — étape C, époque 5, AP val 0,9408 (critère préenregistré), commit d'entraînement `1286f6a` |
 | Bundle | `models/final/` : `model.pt` (SHA-256 `4233a9cd80534b8e…`, copie octet à octet du checkpoint), `preprocessor.json`, `threshold.json`, `model_card.json`, `final_test_metrics.json` |
 | Prétraitement | {"input_size": [640, 224], "resize_mode": "keep_aspect_pad", "pad_value": "median", "interpolation": "area", "color_mode": "rgb", "variant": "none", "steps": [], "normalization": {"mean": [0.485, 0.456, 0.406], "std": [0.229, 0.224, 0.225]}} |
 | Vérification | métadonnées = résultat X6 ; deux passes val identiques ; écart max vs scores enregistrés 9.9e-17 ; AP reproduite 0,9408 |
@@ -234,13 +234,13 @@ Lecture prudente : face à la SVM classique : ΔAP 0,133 [0,089 ; 0,191] (IC app
 - Calibration imparfaite dans la bande utile (scores bruts, `pos_weight` 8,5) ; les probabilités ne sont pas des probabilités métier.
 - Coût CPU élevé : ≈ 164 ms par image en inférence sur l'i7-8665U (prétraitement inclus), ≈ 1 h par époque d'entraînement en étape C.
 - Grad-CAM : évidence qualitative à résolution grossière, pas une localisation.
-- La provenance du run de test porte `git_dirty = true` : au lancement le working tree était propre au commit `7ade5da` ; le drapeau reflète les fichiers de sortie que le script lui-même écrit avant d'enregistrer sa provenance.
+- La provenance du run de test porte `git_dirty = true` : au lancement le working tree était propre au commit `90bf7af` ; le drapeau reflète les fichiers de sortie que le script lui-même écrit avant d'enregistrer sa provenance.
 
 ## 4.11 Reproductibilité
 
 | Élément | Valeur |
 |---|---|
-| Commit du gel / de l'évaluation | `7ade5da` |
+| Commit du gel / de l'évaluation | `90bf7af` |
 | Config au gel | `f9397663b72a` ; config d'entraînement du checkpoint `18eed599c81b` |
 | Seed | 42 |
 | Checkpoint | `runs\20260917_002044_X6_C_winner_18eed599c81b\stage_C_best.pt` — SHA-256 `4233a9cd80534b8efd20cb9abccb772911c9a7c8eb1cbba24fd27845b14e0cbb` |

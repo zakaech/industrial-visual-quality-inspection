@@ -11,7 +11,7 @@ proprement : vérifier le checkpoint, analyser et calibrer les scores sur la val
 le seuil, puis évaluer **une seule fois** le test officiel KolektorSDD2, analyser les erreurs, regarder où le
 réseau regarde (Grad-CAM), et documenter.
 
-L'ordre a été respecté strictement : audit → vérification → analyse validation → seuil → gel (commit `7ade5da`)
+L'ordre a été respecté strictement : audit → vérification → analyse validation → seuil → gel (commit `90bf7af`)
 → test unique → erreurs / Grad-CAM → rapport. Le test n'a été chargé qu'une fois, après le gel, et aucun
 paramètre n'a été modifié ensuite.
 
@@ -21,7 +21,7 @@ ResNet-18 pré-entraîné ImageNet, `layer3` + `layer4` + tête (Dropout 0,2 + L
 moyen, 11 177 025 paramètres ; recette héritée de X4 : `pos_weight` 8,467, sans sampler, BatchNorm `all_eval`,
 AdamW wd 1e-4, LR C `layer3` 5e-5 / `layer4` 1e-4 / tête 5e-4, batch 16, seed 42, augmentations flips +
 photométrie légère (train seul). Checkpoint `stage_C_best.pt` (étape C, époque 5, AP val 0,9408 — critère
-préenregistré), entraîné au commit `5b62df4`.
+préenregistré), entraîné au commit `1286f6a`.
 
 Bundle gelé `models/final/` : `model.pt` (copie octet à octet du checkpoint, SHA-256 `4233a9cd80534b8e…`,
 ignoré par git), `preprocessor.json` (variante `none`, padding médiane, 640×224, normalisation ImageNet),
@@ -130,7 +130,7 @@ de sensibilité du logit et non segmentation, aucune information sur la calibrat
 
 | Élément | Valeur |
 |---|---|
-| Commits | gel `7ade5da` (test non chargé) ; résultats de test et rapport dans le commit final de Phase 4 |
+| Commits | gel `90bf7af` (test non chargé) ; résultats de test et rapport dans le commit final de Phase 4 |
 | Configuration | `configs/default.yaml` (section `phase4`), hash au gel `f9397663b72a` ; config d'entraînement du checkpoint `18eed599c81b` |
 | Seed | 42 |
 | Checkpoint | `runs/20260917_002044_X6_C_winner_18eed599c81b/stage_C_best.pt` → `models/final/model.pt`, SHA-256 `4233a9cd80534b8e…` |

@@ -141,7 +141,7 @@ curl -X POST http://127.0.0.1:8000/predict -F "file=@data/raw/kolektor_sdd2/trai
 Latence mesurée côté serveur sur CPU : médiane 256 ms. Détails, formats, journaux et limites :
 [docs/05_phase5_api.md](docs/05_phase5_api.md).
 
-## Web Interface
+## Interface web
 
 Interface Angular minimaliste (`frontend/`) au-dessus de l'API : **image → Inspect → décision**. Elle n'embarque
 aucune logique ML — score, seuil, décision, latence et métadonnées du modèle sont affichés tels que renvoyés par
@@ -197,7 +197,7 @@ cadrage (risque R9).
 ## Licence
 
 - **Code** (package `vqi`, scripts, API, interface Angular, tests, Dockerfile, CI) : [MIT](LICENSE)
-  (texte original en anglais, seul à faire foi ; [traduction française](LICENSE.fr.md) à titre informatif).
+  (texte original en anglais, seul à faire foi).
 - **Jeu de données KolektorSDD2** : © Kolektor Group / Université de Ljubljana, licence
   [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) — usage non commercial, attribution
   (Božič, Tabernik & Skočaj, *Computers in Industry*, 2021), partage aux mêmes conditions. Les données ne sont pas

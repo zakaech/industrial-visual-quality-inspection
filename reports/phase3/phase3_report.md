@@ -29,7 +29,7 @@ Phase 2 (`E5_grid_edge_check`, AP 0,862) sont la seule base de comparaison.
 Recette : étapes A, `pos_weight` = 1.0 (1,00),
 sampler `none`, pooling `avg`, batch 16, workers 2,
 biais initial de la tête TBD = log(n_pos/n_neg) = log(197/1668).
-Run `20260916_152506_X1_linear_probe_45ede5e751b2` — commit `7c48a28e1abe649f382957f052d8cb2d20d1b5a1`, config `45ede5e751b2`, torch 2.14.0+cpu,
+Run `20260916_152506_X1_linear_probe_45ede5e751b2` — commit `b0e14a1440fc02dd2046e295099ef304ba55938e`, config `45ede5e751b2`, torch 2.14.0+cpu,
 durée totale 7,1 min, `test_used = false`.
 
 | étape | entraînable | LR | époques | meilleure | AP val (best) | arrêt anticipé | durée (s) | features gelées (s) |
@@ -97,7 +97,7 @@ Comparaison appariée avec `E5_grid_edge_check` (1000 rééchantillonnages) : Δ
 Recette : étapes A → B, `pos_weight` = 1.0 (1,00),
 sampler `none`, pooling `avg`, batch 16, workers 2,
 biais initial de la tête -2,136 = log(n_pos/n_neg) = log(197/1668).
-Run `20260916_172917_X2_B_pw1_18eed599c81b` — commit `36dcdc9635968c467ed2d9d531e1cc918f5ac973`, config `18eed599c81b`, torch 2.14.0+cpu,
+Run `20260916_172917_X2_B_pw1_18eed599c81b` — commit `9d704ec2591028871f61d30d0dd2b196405b7ec3`, config `18eed599c81b`, torch 2.14.0+cpu,
 durée totale 95,0 min, `test_used = false`.
 
 | étape | entraînable | LR | époques | meilleure | AP val (best) | arrêt anticipé | durée (s) | features gelées (s) |
@@ -174,7 +174,7 @@ Comparaison appariée avec `E5_grid_edge_check` (1000 rééchantillonnages) : Δ
 Recette : étapes A → B, `pos_weight` = sqrt_ratio (2,91),
 sampler `none`, pooling `avg`, batch 16, workers 2,
 biais initial de la tête -2,136 = log(n_pos/n_neg) = log(197/1668).
-Run `20260916_190418_X3_B_pw_sqrt_ratio_18eed599c81b` — commit `36dcdc9635968c467ed2d9d531e1cc918f5ac973`, config `18eed599c81b`, torch 2.14.0+cpu,
+Run `20260916_190418_X3_B_pw_sqrt_ratio_18eed599c81b` — commit `9d704ec2591028871f61d30d0dd2b196405b7ec3`, config `18eed599c81b`, torch 2.14.0+cpu,
 durée totale 57,2 min, `test_used = false`.
 
 | étape | entraînable | LR | époques | meilleure | AP val (best) | arrêt anticipé | durée (s) | features gelées (s) |
@@ -252,7 +252,7 @@ Comparaison appariée avec `E5_grid_edge_check` (1000 rééchantillonnages) : Δ
 Recette : étapes A → B, `pos_weight` = ratio (8,47),
 sampler `none`, pooling `avg`, batch 16, workers 2,
 biais initial de la tête -2,136 = log(n_pos/n_neg) = log(197/1668).
-Run `20260916_200128_X4_B_pw_ratio_18eed599c81b` — commit `36dcdc9635968c467ed2d9d531e1cc918f5ac973`, config `18eed599c81b`, torch 2.14.0+cpu,
+Run `20260916_200128_X4_B_pw_ratio_18eed599c81b` — commit `9d704ec2591028871f61d30d0dd2b196405b7ec3`, config `18eed599c81b`, torch 2.14.0+cpu,
 durée totale 58,8 min, `test_used = false`.
 
 | étape | entraînable | LR | époques | meilleure | AP val (best) | arrêt anticipé | durée (s) | features gelées (s) |
@@ -329,7 +329,7 @@ Comparaison appariée avec `E5_grid_edge_check` (1000 rééchantillonnages) : Δ
 Recette : étapes A → B, `pos_weight` = 1.0 (1,00),
 sampler `weighted_random`, pooling `avg`, batch 16, workers 2,
 biais initial de la tête -2,136 = log(n_pos/n_neg) = log(197/1668).
-Run `20260916_210015_X5_B_sampler_18eed599c81b` — commit `36dcdc9635968c467ed2d9d531e1cc918f5ac973`, config `18eed599c81b`, torch 2.14.0+cpu,
+Run `20260916_210015_X5_B_sampler_18eed599c81b` — commit `9d704ec2591028871f61d30d0dd2b196405b7ec3`, config `18eed599c81b`, torch 2.14.0+cpu,
 durée totale 52,1 min, `test_used = false`.
 
 | étape | entraînable | LR | époques | meilleure | AP val (best) | arrêt anticipé | durée (s) | features gelées (s) |
@@ -411,7 +411,7 @@ Comparaison appariée avec `E5_grid_edge_check` (1000 rééchantillonnages) : Δ
 Recette : étapes C, `pos_weight` = ratio (8,47),
 sampler `none`, pooling `avg`, batch 16, workers 2,
 biais initial de la tête -2,136 = log(n_pos/n_neg) = log(197/1668).
-Run `20260917_002044_X6_C_winner_18eed599c81b` — commit `5b62df4beea504a7c1a868671f51613a38c8ca1e`, config `18eed599c81b`, torch 2.14.0+cpu,
+Run `20260917_002044_X6_C_winner_18eed599c81b` — commit `1286f6a928024d0fdcc9edd0769296e9e53fe3a5`, config `18eed599c81b`, torch 2.14.0+cpu,
 durée totale 113,0 min, `test_used = false`.
 
 | étape | entraînable | LR | époques | meilleure | AP val (best) | arrêt anticipé | durée (s) | features gelées (s) |
